@@ -7,16 +7,19 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getHomeFeedPosts } from "../firebase/posts";
+import { subscribeHomeFeedPosts } from "../firebase/posts";
 
 export default function FeedScreen() {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getHomeFeedPosts()
-      .then(setPosts)
-      .finally(() => setLoading(false));
+    const unsubscribe = subscribeHomeFeedPosts((data) => {
+      setPosts(data);
+      setLoading(false);
+    });
+
+    return () => unsubscribe(); // 🔥 çok önemli
   }, []);
 
   if (loading) {
@@ -55,7 +58,6 @@ export default function FeedScreen() {
                 {item.text ? (
                   <Text style={styles.text}>{item.text}</Text>
                 ) : null}
-
                 <Image
                   source={{ uri: item.image_url }}
                   style={styles.image}
@@ -70,25 +72,14 @@ export default function FeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-  },
-
-  loading: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  container: { flex: 1, backgroundColor: "#f8f9fa" },
+  loading: { flex: 1, alignItems: "center", justifyContent: "center" },
 
   card: {
     backgroundColor: "#fff",
     padding: 16,
     borderRadius: 16,
     marginBottom: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
     elevation: 2,
   },
 

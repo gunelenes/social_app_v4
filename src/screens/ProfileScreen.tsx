@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { auth } from "../firebase/firebaseConfig";
-import { getMyActivePosts } from "../firebase/posts";
+import { subscribeMyProfilePosts } from "../firebase/posts";
 
 export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<
@@ -20,8 +20,10 @@ export default function ProfileScreen() {
 
   const [posts, setPosts] = useState<any[]>([]);
 
+  // 🔥 REAL-TIME PROFILE FEED
   useEffect(() => {
-    getMyActivePosts().then(setPosts);
+    const unsubscribe = subscribeMyProfilePosts(setPosts);
+    return () => unsubscribe();
   }, []);
 
   const username = auth.currentUser?.email?.split("@")[0] ?? "";
