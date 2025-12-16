@@ -12,75 +12,148 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 
 import { auth } from "../firebase/firebaseConfig";
 import { createPost } from "../firebase/posts";
-import { uploadPostImage } from "../firebase/storage";
+
+type TabType = "text" | "image" | "file" | "poll";
 
 export default function PostModalScreen({ navigation }: any) {
-  const [activeTab, setActiveTab] = useState<"text" | "image">("text");
+  const [activeTab, setActiveTab] = useState<TabType>("text");
   const [text, setText] = useState("");
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
+
+  const [file, setFile] = useState<File | null>(null);
+
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
+
   const [loading, setLoading] = useState(false);
 
   const username = auth.currentUser?.email?.split("@")[0] ?? "";
 
-  // 📸 Fotoğraf seç
+  /* =========================================================
+     IMAGE PICKER
+  ========================================================= */
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
     });
 
     if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
+      const asset = result.assets[0];
+      setImageUri(asset.uri);
+
+      // 🔥 RN → File objesi
+      const fileObj: any = {
+        uri: asset.uri,
+        name: `image_${Date.now()}.jpg`,
+        type: "image/jpeg",
+      };
+
+      setImageFile(fileObj);
     }
   };
 
-  // 🚀 Paylaş
+  /* =========================================================
+     FILE PICKER
+  ========================================================= */
+  const pickFile = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      copyToCacheDirectory: true,
+    });
+
+    if (result.canceled) return;
+
+    const asset = result.assets[0];
+
+    const fileObj: any = {
+      uri: asset.uri,
+      name: asset.name,
+      type: asset.mimeType ?? "application/octet-stream",
+    };
+
+    setFile(fileObj);
+  };
+
+  /* =========================================================
+     SHARE
+  ========================================================= */
   const handleShare = async () => {
     try {
-      if (activeTab === "text" && !text.trim()) {
-        Alert.alert("Hata", "Gönderi boş olamaz");
-        return;
-      }
-
-      if (activeTab === "image" && !imageUri) {
-        Alert.alert("Hata", "Fotoğraf seçmelisin");
-        return;
-      }
-
       setLoading(true);
 
-      // 📝 Yazı post
+      /* 📝 TEXT */
       if (activeTab === "text") {
+        if (!text.trim()) {
+          Alert.alert("Hata", "Gönderi boş olamaz");
+          return;
+        }
+
         await createPost({
           type: "note",
           text,
         });
       }
 
-      // 📷 Fotoğraf post
+      /* 📷 IMAGE */
       if (activeTab === "image") {
-        const imageUrl = await uploadPostImage(imageUri!);
+        if (!imageFile) {
+          Alert.alert("Hata", "Fotoğraf seçmelisin");
+          return;
+        }
 
         await createPost({
           type: "image",
           text,
-          image_url: imageUrl,
+          imageFile,
         });
       }
 
+      /* 📎 FILE */
+      if (activeTab === "file") {
+        if (!file) {
+          Alert.alert("Hata", "Dosya seçmelisin");
+          return;
+        }
+
+        await createPost({
+          type: "file",
+          text,
+          file,
+        });
+      }
+
+      /* 📊 POLL */
+      if (activeTab === "poll") {
+        const cleanOptions = pollOptions.filter((o) => o.trim());
+
+        if (!text.trim() || cleanOptions.length < 2) {
+          Alert.alert("Hata", "Anket için en az 2 seçenek gerekir");
+          return;
+        }
+
+        await createPost({
+          type: "poll",
+          text,
+          pollOptions: cleanOptions,
+        });
+      }
+
+      // 🔄 RESET
       setText("");
       setImageUri(null);
+      setImageFile(null);
+      setFile(null);
+      setPollOptions(["", ""]);
+
       navigation.goBack();
     } catch (err: any) {
-      console.log("POST ERROR:", err?.code, err?.message, err);
-      Alert.alert(
-        "Hata",
-        `${err?.code ?? ""} ${err?.message ?? "Bilinmeyen hata"}`
-      );
+      console.log("POST ERROR:", err);
+      Alert.alert("Hata", err?.message ?? "Bilinmeyen hata");
     } finally {
       setLoading(false);
     }
@@ -92,45 +165,37 @@ export default function PostModalScreen({ navigation }: any) {
 
       {/* HEADER */}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text>✕</Text>
         </TouchableOpacity>
 
         <Text style={styles.title}>Yeni Gönderi</Text>
 
-        <TouchableOpacity
-          onPress={handleShare}
-          disabled={loading}
-          style={[styles.shareBtn, loading && { opacity: 0.5 }]}
-        >
+        <TouchableOpacity onPress={handleShare} disabled={loading}>
           <Text style={styles.shareText}>{loading ? "..." : "Paylaş"}</Text>
         </TouchableOpacity>
       </View>
 
       {/* USER */}
-      <View style={styles.userInfo}>
-        <Text style={styles.userName}>@{username}</Text>
-      </View>
+      <Text style={styles.userName}>@{username}</Text>
 
       {/* SEGMENT */}
       <View style={styles.segmentBar}>
-        {["text", "image"].map((tab) => (
+        {[
+          { key: "text", label: "📝 Yazı" },
+          { key: "image", label: "📷 Fotoğraf" },
+          { key: "file", label: "📎 Dosya" },
+          { key: "poll", label: "📊 Anket" },
+        ].map((t) => (
           <TouchableOpacity
-            key={tab}
+            key={t.key}
             style={[
               styles.segmentBtn,
-              activeTab === tab && styles.segmentBtnActive,
+              activeTab === t.key && styles.segmentBtnActive,
             ]}
-            onPress={() => setActiveTab(tab as any)}
+            onPress={() => setActiveTab(t.key as TabType)}
           >
-            <Text
-              style={{
-                color: activeTab === tab ? "#fff" : "#333",
-                fontWeight: "600",
-              }}
-            >
-              {tab === "text" ? "📝 Yazı" : "📷 Fotoğraf"}
-            </Text>
+            <Text>{t.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -140,9 +205,9 @@ export default function PostModalScreen({ navigation }: any) {
         {activeTab === "text" && (
           <TextInput
             placeholder="Ne düşünüyorsun?"
-            multiline
             value={text}
             onChangeText={setText}
+            multiline
             style={styles.textInput}
           />
         )}
@@ -151,15 +216,13 @@ export default function PostModalScreen({ navigation }: any) {
           <>
             {!imageUri ? (
               <TouchableOpacity style={styles.uploadBox} onPress={pickImage}>
-                <Text style={{ fontSize: 40 }}>📷</Text>
-                <Text>Fotoğraf Seç</Text>
+                <Text>📷 Fotoğraf Seç</Text>
               </TouchableOpacity>
             ) : (
               <>
                 <Image source={{ uri: imageUri }} style={styles.image} />
                 <TextInput
-                  placeholder="Açıklama ekle..."
-                  multiline
+                  placeholder="Açıklama"
                   value={text}
                   onChangeText={setText}
                   style={styles.caption}
@@ -168,14 +231,62 @@ export default function PostModalScreen({ navigation }: any) {
             )}
           </>
         )}
+
+        {activeTab === "file" && (
+          <>
+            <TouchableOpacity style={styles.uploadBox} onPress={pickFile}>
+              <Text>📎 Dosya Seç</Text>
+            </TouchableOpacity>
+
+            {file && <Text>{file.name}</Text>}
+
+            <TextInput
+              placeholder="Açıklama (opsiyonel)"
+              value={text}
+              onChangeText={setText}
+              style={styles.caption}
+            />
+          </>
+        )}
+
+        {activeTab === "poll" && (
+          <View style={{ gap: 12 }}>
+            <TextInput
+              placeholder="Anket sorusu"
+              value={text}
+              onChangeText={setText}
+              style={styles.textInput}
+            />
+
+            {pollOptions.map((opt, i) => (
+              <TextInput
+                key={i}
+                placeholder={`Seçenek ${i + 1}`}
+                value={opt}
+                onChangeText={(v) => {
+                  const copy = [...pollOptions];
+                  copy[i] = v;
+                  setPollOptions(copy);
+                }}
+                style={styles.caption}
+              />
+            ))}
+
+            <TouchableOpacity
+              onPress={() => setPollOptions([...pollOptions, ""])}
+            >
+              <Text style={{ color: "#667eea" }}>➕ Seçenek ekle</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-//
-// ---------------- STYLES ----------------
-//
+/* =========================================================
+   STYLES
+========================================================= */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
 
@@ -183,67 +294,52 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 16,
-    alignItems: "center",
   },
 
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#f1f1f5",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  title: { fontWeight: "700", fontSize: 16 },
 
-  title: { fontSize: 18, fontWeight: "700" },
+  shareText: { color: "#667eea", fontWeight: "700" },
 
-  shareBtn: {
-    backgroundColor: "#667eea",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-  },
-
-  shareText: { color: "#fff", fontWeight: "700" },
-
-  userInfo: { paddingHorizontal: 20 },
-  userName: { fontWeight: "600" },
+  userName: { paddingHorizontal: 20, fontWeight: "600" },
 
   segmentBar: {
     flexDirection: "row",
     paddingHorizontal: 20,
-    gap: 10,
+    gap: 8,
+    marginVertical: 10,
   },
 
   segmentBtn: {
-    padding: 12,
+    padding: 10,
     backgroundColor: "#f1f1f5",
-    borderRadius: 16,
+    borderRadius: 14,
   },
 
   segmentBtnActive: {
-    backgroundColor: "#667eea",
+    backgroundColor: "#d6dbff",
   },
 
   textInput: {
-    minHeight: 200,
-    fontSize: 16,
-    textAlignVertical: "top",
+    minHeight: 120,
+    borderRadius: 16,
+    padding: 14,
+    backgroundColor: "#f8f9fa",
   },
 
   uploadBox: {
-    height: 200,
+    height: 160,
     borderRadius: 20,
     borderWidth: 2,
     borderStyle: "dashed",
     borderColor: "#ccc",
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 12,
   },
 
   image: {
     width: "100%",
-    height: 280,
+    height: 260,
     borderRadius: 20,
     marginBottom: 12,
   },
@@ -252,6 +348,5 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
     padding: 14,
     borderRadius: 16,
-    minHeight: 60,
   },
 });

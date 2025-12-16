@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dimensions,
   Image,
@@ -13,20 +13,39 @@ import {
 import { auth } from "../firebase/firebaseConfig";
 import { subscribeMyProfilePosts } from "../firebase/posts";
 
-export default function ProfileScreen() {
-  const [activeTab, setActiveTab] = useState<
-    "posts" | "files" | "notes" | "polls"
-  >("posts");
+type TabType = "posts" | "files" | "notes" | "polls";
 
+export default function ProfileScreen() {
+  const [activeTab, setActiveTab] = useState<TabType>("posts");
   const [posts, setPosts] = useState<any[]>([]);
 
-  // 🔥 REAL-TIME PROFILE FEED
+  /* 🔥 REAL-TIME PROFILE POSTS */
   useEffect(() => {
     const unsubscribe = subscribeMyProfilePosts(setPosts);
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
   const username = auth.currentUser?.email?.split("@")[0] ?? "";
+
+  /* 🔹 SEGMENT FILTER */
+  const filteredPosts = useMemo(() => {
+    switch (activeTab) {
+      case "notes":
+        return posts.filter((p) => p.type === "note");
+
+      case "posts":
+        return posts.filter((p) => p.type === "image");
+
+      case "files":
+        return posts.filter((p) => p.type === "file");
+
+      case "polls":
+        return posts.filter((p) => p.type === "poll");
+
+      default:
+        return [];
+    }
+  }, [activeTab, posts]);
 
   return (
     <View style={styles.container}>
@@ -34,42 +53,40 @@ export default function ProfileScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* HEADER */}
-        <View>
-          <LinearGradient
-            colors={["#667eea", "#764ba2"]}
-            style={styles.headerGradient}
-          >
-            <View style={styles.avatarSection}>
-              <View style={styles.avatarRing}>
-                <Image
-                  source={{ uri: "https://i.pravatar.cc/150?img=3" }}
-                  style={styles.avatar}
-                />
-              </View>
-              <Text style={styles.username}>{username}</Text>
+        <LinearGradient
+          colors={["#667eea", "#764ba2"]}
+          style={styles.headerGradient}
+        >
+          <View style={styles.avatarSection}>
+            <View style={styles.avatarRing}>
+              <Image
+                source={{ uri: "https://i.pravatar.cc/150?img=3" }}
+                style={styles.avatar}
+              />
             </View>
-          </LinearGradient>
+            <Text style={styles.username}>{username}</Text>
+          </View>
+        </LinearGradient>
 
-          {/* STATS */}
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statNum}>{posts.length}</Text>
-              <Text style={styles.statText}>Gönderi</Text>
-            </View>
+        {/* STATS */}
+        <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <Text style={styles.statNum}>{posts.length}</Text>
+            <Text style={styles.statText}>Gönderi</Text>
+          </View>
 
-            <View style={styles.divider} />
+          <View style={styles.divider} />
 
-            <View style={styles.statBox}>
-              <Text style={styles.statNum}>0</Text>
-              <Text style={styles.statText}>Takipçi</Text>
-            </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statNum}>0</Text>
+            <Text style={styles.statText}>Takipçi</Text>
+          </View>
 
-            <View style={styles.divider} />
+          <View style={styles.divider} />
 
-            <View style={styles.statBox}>
-              <Text style={styles.statNum}>0</Text>
-              <Text style={styles.statText}>Takip</Text>
-            </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statNum}>0</Text>
+            <Text style={styles.statText}>Takip</Text>
           </View>
         </View>
 
@@ -93,7 +110,7 @@ export default function ProfileScreen() {
                 styles.segmentBtn,
                 activeTab === tab && styles.segmentBtnActive,
               ]}
-              onPress={() => setActiveTab(tab as any)}
+              onPress={() => setActiveTab(tab as TabType)}
             >
               <Text
                 style={[
@@ -113,21 +130,49 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        {/* POSTS GRID */}
-        {activeTab === "posts" && (
+        {/* CONTENT */}
+        {filteredPosts.length === 0 ? (
+          <View style={styles.emptyBox}>
+            <Text style={styles.emptyText}>Henüz içerik yok</Text>
+          </View>
+        ) : (
           <View style={styles.grid}>
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <View key={post.id} style={styles.gridItem}>
-                {post.type === "image" ? (
+                {/* 🖼 IMAGE */}
+                {post.type === "image" && (
                   <Image
                     source={{ uri: post.image_url }}
                     style={styles.postImage}
                   />
-                ) : (
+                )}
+
+                {/* 📝 NOTE */}
+                {post.type === "note" && (
                   <View style={styles.notePost}>
                     <Text numberOfLines={4} style={styles.noteText}>
                       {post.text}
                     </Text>
+                  </View>
+                )}
+
+                {/* 📎 FILE */}
+                {post.type === "file" && (
+                  <View style={styles.filePost}>
+                    <Text style={styles.fileIcon}>📎</Text>
+                    <Text numberOfLines={2} style={styles.fileName}>
+                      {post.file_name}
+                    </Text>
+                  </View>
+                )}
+
+                {/* 📊 POLL */}
+                {post.type === "poll" && (
+                  <View style={styles.pollPost}>
+                    <Text numberOfLines={3} style={styles.pollText}>
+                      {post.text}
+                    </Text>
+                    <Text style={styles.pollSub}>Anket</Text>
                   </View>
                 )}
               </View>
@@ -138,6 +183,8 @@ export default function ProfileScreen() {
     </View>
   );
 }
+
+/* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8f9fa" },
@@ -224,6 +271,9 @@ const styles = StyleSheet.create({
   segmentText: { textAlign: "center", color: "#444" },
   segmentTextActive: { color: "#fff", fontWeight: "600" },
 
+  emptyBox: { marginTop: 40, alignItems: "center" },
+  emptyText: { color: "#8e8e93", fontSize: 15 },
+
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -237,6 +287,7 @@ const styles = StyleSheet.create({
     height: (Dimensions.get("window").width - 42) / 2,
     borderRadius: 16,
     overflow: "hidden",
+    backgroundColor: "#f1f1f5",
   },
 
   postImage: { width: "100%", height: "100%" },
@@ -250,4 +301,25 @@ const styles = StyleSheet.create({
   },
 
   noteText: { color: "#fff", textAlign: "center" },
+
+  filePost: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+  },
+
+  fileIcon: { fontSize: 32 },
+  fileName: { marginTop: 6, textAlign: "center", fontSize: 13 },
+
+  pollPost: {
+    flex: 1,
+    backgroundColor: "#764ba2",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+  },
+
+  pollText: { color: "#fff", textAlign: "center", fontWeight: "600" },
+  pollSub: { marginTop: 6, color: "#eee", fontSize: 12 },
 });

@@ -5,29 +5,61 @@ import {
   query,
   where,
   orderBy,
-  getDocs,
   onSnapshot,
+  doc,
+  runTransaction,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, auth, storage } from "./firebaseConfig";
 
-export type PostType = "image" | "note";
+/* =========================================================
+   TYPES
+========================================================= */
+export type PostType = "image" | "note" | "file" | "poll";
+
+export type PollOption = {
+  id: string;
+  text: string;
+  votes: number;
+};
+
+export type PollVote = {
+  user_id: string;
+  option_id: string;
+};
 
 /* =========================================================
-   IMAGE UPLOAD (STORAGE)
+   IMAGE UPLOAD
 ========================================================= */
 export const uploadImage = async (file: File): Promise<string> => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
-  const timestamp = Date.now();
-  const filename = `${timestamp}_${file.name}`;
-
-  // 📦 Storage path
-  const storageRef = ref(storage, `${user.uid}/${filename}`);
+  const filename = `${Date.now()}_${file.name}`;
+  const storageRef = ref(storage, `images/${user.uid}/${filename}`);
 
   await uploadBytes(storageRef, file);
   return await getDownloadURL(storageRef);
+};
+
+/* =========================================================
+   FILE UPLOAD
+========================================================= */
+export const uploadFile = async (file: File) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not authenticated");
+
+  const filename = `${Date.now()}_${file.name}`;
+  const storageRef = ref(storage, `files/${user.uid}/${filename}`);
+
+  await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(storageRef);
+
+  return {
+    file_url: url,
+    file_name: file.name,
+    file_type: file.type,
+  };
 };
 
 /* =========================================================
@@ -36,19 +68,38 @@ export const uploadImage = async (file: File): Promise<string> => {
 export const createPost = async (params: {
   type: PostType;
   text?: string;
-  image_url?: string;
   imageFile?: File;
+  file?: File;
+  pollOptions?: string[];
 }) => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
   const username = user.email?.split("@")[0] ?? "unknown";
 
-  let imageUrl = params.image_url ?? "";
+  let image_url = "";
+  let file_url = "";
+  let file_name = "";
+  let file_type = "";
+  let poll_options: PollOption[] = [];
 
-  // 📸 Eğer imageFile varsa önce upload et
-  if (params.imageFile) {
-    imageUrl = await uploadImage(params.imageFile);
+  if (params.type === "image" && params.imageFile) {
+    image_url = await uploadImage(params.imageFile);
+  }
+
+  if (params.type === "file" && params.file) {
+    const uploaded = await uploadFile(params.file);
+    file_url = uploaded.file_url;
+    file_name = uploaded.file_name;
+    file_type = uploaded.file_type;
+  }
+
+  if (params.type === "poll" && params.pollOptions) {
+    poll_options = params.pollOptions.map((opt, i) => ({
+      id: String(i),
+      text: opt,
+      votes: 0,
+    }));
   }
 
   await addDoc(collection(db, "posts"), {
@@ -56,9 +107,67 @@ export const createPost = async (params: {
     username,
     type: params.type,
     text: params.text ?? "",
-    image_url: imageUrl,
+    image_url,
+    file_url,
+    file_name,
+    file_type,
+    poll_options,
+    voted_user_ids: [], // 👈 [{ user_id, option_id }]
     created_date: serverTimestamp(),
     is_active: true,
+  });
+};
+
+/* =========================================================
+   POLL – SINGLE CHOICE VOTE
+========================================================= */
+export const votePollSingleChoice = async (
+  postId: string,
+  optionIndex: number
+) => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const postRef = doc(db, "posts", postId);
+
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(postRef);
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+    const options: PollOption[] = data.poll_options ?? [];
+    let votes: PollVote[] = data.voted_user_ids ?? [];
+
+    // Kullanıcının eski oyu
+    const existingVote = votes.find(
+      (v) => v.user_id === user.uid
+    );
+
+    // Eski oy varsa geri al
+    if (existingVote) {
+      const oldIndex = Number(existingVote.option_id);
+      if (options[oldIndex]) {
+        options[oldIndex].votes = Math.max(
+          0,
+          options[oldIndex].votes - 1
+        );
+      }
+
+      votes = votes.filter((v) => v.user_id !== user.uid);
+    }
+
+    // Yeni oy ekle
+    options[optionIndex].votes += 1;
+
+    votes.push({
+      user_id: user.uid,
+      option_id: String(optionIndex),
+    });
+
+    tx.update(postRef, {
+      poll_options: options,
+      voted_user_ids: votes,
+    });
   });
 };
 
@@ -74,18 +183,15 @@ export const subscribeHomeFeedPosts = (
     orderBy("created_date", "desc")
   );
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const posts = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    callback(posts);
+  return onSnapshot(q, (snapshot) => {
+    callback(
+      snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+    );
   });
-
-  return unsubscribe; // 🧹 cleanup
 };
-
 /* =========================================================
    PROFILE FEED – REAL-TIME (MY POSTS)
 ========================================================= */
@@ -102,35 +208,12 @@ export const subscribeMyProfilePosts = (
     orderBy("created_date", "desc")
   );
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const posts = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    callback(posts);
+  return onSnapshot(q, (snapshot) => {
+    callback(
+      snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+    );
   });
-
-  return unsubscribe;
-};
-
-/* =========================================================
-   PROFILE POSTS – STATIC (OPSİYONEL / DEBUG)
-========================================================= */
-export const getMyActivePosts = async () => {
-  const user = auth.currentUser;
-  if (!user) return [];
-
-  const q = query(
-    collection(db, "posts"),
-    where("is_active", "==", true),
-    where("user_id", "==", user.uid),
-    orderBy("created_date", "desc")
-  );
-
-  const snap = await getDocs(q);
-  return snap.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
 };
