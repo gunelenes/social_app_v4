@@ -14,11 +14,15 @@ import {
   votePollSingleChoice,
 } from "../firebase/posts";
 import { auth } from "../firebase/firebaseConfig";
-
-export default function FeedScreen() {
+import { collection, onSnapshot, query, orderBy, limit } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
+import { downloadAndShareFile } from "../utils/downloadFile";
+export default function FeedScreen({ navigation }: any) {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [commentsMap, setCommentsMap] = useState<Record<string, any[]>>({});
 
+  /* 🔥 FEED */
   useEffect(() => {
     const unsub = subscribeHomeFeedPosts((data) => {
       setPosts(data);
@@ -26,6 +30,33 @@ export default function FeedScreen() {
     });
     return unsub;
   }, []);
+
+  /* 💬 COMMENTS (son 2 yorum) */
+  useEffect(() => {
+    const unsubs: any[] = [];
+
+    posts.forEach((post) => {
+      const q = query(
+        collection(db, "posts", post.id, "comments"),
+        orderBy("created_date", "desc"),
+        limit(2)
+      );
+
+      const unsub = onSnapshot(q, (snap) => {
+        setCommentsMap((prev) => ({
+          ...prev,
+          [post.id]: snap.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+          })),
+        }));
+      });
+
+      unsubs.push(unsub);
+    });
+
+    return () => unsubs.forEach((u) => u && u());
+  }, [posts]);
 
   if (loading) {
     return (
@@ -64,14 +95,18 @@ export default function FeedScreen() {
             0
           );
 
+          const comments = commentsMap[item.id] ?? [];
+
           return (
             <View style={styles.card}>
               <Text style={styles.username}>@{item.username}</Text>
 
+              {/* NOTE */}
               {item.type === "note" && (
                 <Text style={styles.text}>{item.text}</Text>
               )}
 
+              {/* IMAGE */}
               {item.type === "image" && (
                 <>
                   {!!item.text && (
@@ -84,10 +119,16 @@ export default function FeedScreen() {
                 </>
               )}
 
+              {/* FILE */}
               {item.type === "file" && (
                 <TouchableOpacity
                   style={styles.fileBox}
-                  onPress={() => Linking.openURL(item.file_url)}
+                  onPress={() =>
+                    downloadAndShareFile(
+                      item.file_url,
+                      item.file_name || "dosya"
+                    )
+                  }
                 >
                   <Text style={styles.fileIcon}>📎</Text>
                   <View>
@@ -97,6 +138,7 @@ export default function FeedScreen() {
                 </TouchableOpacity>
               )}
 
+              {/* POLL */}
               {item.type === "poll" && pollOptions.length > 0 && (
                 <View style={styles.pollBox}>
                   <Text style={styles.pollQuestion}>{item.text}</Text>
@@ -132,9 +174,7 @@ export default function FeedScreen() {
                         />
 
                         <View style={styles.pollRow}>
-                          <Text style={styles.pollText}>
-                            {opt.text}
-                          </Text>
+                          <Text style={styles.pollText}>{opt.text}</Text>
                           <Text style={styles.pollVotes}>
                             {percent}% • {opt.votes}
                           </Text>
@@ -148,6 +188,33 @@ export default function FeedScreen() {
                   </Text>
                 </View>
               )}
+               {/* 💬 YORUM SAYISI */}
+              <Text style={styles.commentCount}>
+                💬 {item.comment_count ?? 0}
+              </Text>
+              {/* 💬 COMMENTS PREVIEW */}
+              <View style={styles.commentsBox}>
+                {comments.map((c) => (
+                  <Text key={c.id} style={styles.commentText}>
+                    <Text style={{ fontWeight: "600" }}>
+                      @{c.username}
+                    </Text>{" "}
+                    {c.text}
+                  </Text>
+                ))}
+
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate("Comments", {
+                      postId: item.id,
+                    })
+                  }
+                >
+                  <Text style={styles.commentBtn}>
+                    💬 Yorum yap / Tüm yorumları gör
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           );
         }}
@@ -232,4 +299,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#666",
   },
+
+  commentsBox: {
+    marginTop: 10,
+    gap: 4,
+  },
+
+  commentText: {
+    fontSize: 13,
+    color: "#333",
+  },
+
+  commentBtn: {
+    marginTop: 6,
+    fontSize: 13,
+    color: "#667eea",
+    fontWeight: "600",
+  },
+  commentCount: {
+  marginTop: 6,
+  fontSize: 13,
+  color: "#666",
+},
 });
