@@ -18,6 +18,8 @@ import {
   sendTextMessage,
   subscribeMessages,
 } from "../services/messages";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function ChatScreen({ route, navigation }: any) {
   const currentUser = auth.currentUser;
@@ -34,19 +36,35 @@ export default function ChatScreen({ route, navigation }: any) {
 
   const typingTimer = useRef<any>(null);
   const isTyping = useRef<boolean>(false);
+  const flatListRef = useRef<FlatList>(null);
 
-  /* =========================
-     HEADER
-  ========================= */
   useLayoutEffect(() => {
     navigation.setOptions({
       title: otherUsername ?? "Sohbet",
+      headerStyle: {
+        backgroundColor: "#fff",
+      },
+      headerTintColor: "#1e293b",
+      headerTitleStyle: {
+        fontWeight: "700",
+      },
+      headerRight: () => (
+        <View style={styles.headerRight}>
+          <LinearGradient
+            colors={["#667eea", "#764ba2"]}
+            style={styles.headerAvatar}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Text style={styles.headerAvatarText}>
+              {otherUsername?.charAt(0).toUpperCase()}
+            </Text>
+          </LinearGradient>
+        </View>
+      ),
     });
   }, [otherUsername]);
 
-  /* =========================
-     CHAT ID HAZIRLA
-  ========================= */
   useEffect(() => {
     if (!currentUser) return;
 
@@ -71,18 +89,12 @@ export default function ChatScreen({ route, navigation }: any) {
     })();
   }, [currentUser?.uid, otherUserId, routeChatId]);
 
-  /* =========================
-     MESAJLARI DİNLE
-  ========================= */
   useEffect(() => {
     if (!chatId) return;
     const unsub = subscribeMessages(chatId, setMessages);
     return unsub;
   }, [chatId]);
 
-  /* =========================
-     TYPING (OPTIMIZED)
-  ========================= */
   const onChangeText = (val: string) => {
     setText(val);
 
@@ -109,9 +121,6 @@ export default function ChatScreen({ route, navigation }: any) {
     }, 900);
   };
 
-  /* =========================
-     GÖNDER
-  ========================= */
   const onSend = async () => {
     if (!text.trim()) return;
 
@@ -131,7 +140,6 @@ export default function ChatScreen({ route, navigation }: any) {
         receiverId: otherUserId,
       });
 
-      // typing kapat
       isTyping.current = false;
       setTyping({
         chatId,
@@ -145,111 +153,351 @@ export default function ChatScreen({ route, navigation }: any) {
     }
   };
 
+  const formatTime = (timestamp: any) => {
+    if (!timestamp) return "";
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleTimeString("tr-TR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const EmptyState = () => (
+    <View style={styles.emptyState}>
+      <View style={styles.emptyIconContainer}>
+        <LinearGradient
+          colors={["#f0f4ff", "#e0e7ff"]}
+          style={styles.emptyIconGradient}
+        >
+          <Ionicons name="chatbubbles-outline" size={64} color="#667eea" />
+        </LinearGradient>
+      </View>
+      <Text style={styles.emptyTitle}>Henüz mesaj yok</Text>
+      <Text style={styles.emptyText}>
+        İlk mesajı göndererek sohbeti başlatın
+      </Text>
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <FlatList
+          ref={flatListRef}
           data={messages}
           inverted
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={styles.messagesList}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<EmptyState />}
           renderItem={({ item }) => {
             const mine = item.senderId === currentUser?.uid;
             return (
-              <View
-                style={[
-                  styles.bubble,
-                  mine ? styles.mine : styles.theirs,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.text,
-                    mine && { color: "#fff" },
-                  ]}
-                >
-                  {item.text}
-                </Text>
+              <View style={styles.messageContainer}>
+                {mine ? (
+                  <View style={styles.myMessageWrapper}>
+                    <View style={styles.myBubble}>
+                      <LinearGradient
+                        colors={["#667eea", "#764ba2"]}
+                        style={styles.myBubbleGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                      >
+                        <Text style={styles.myMessageText}>{item.text}</Text>
+                      </LinearGradient>
+                    </View>
+                    <Text style={styles.myMessageTime}>
+                      {formatTime(item.createdAt)}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.theirMessageWrapper}>
+                    <View style={styles.theirAvatar}>
+                      <LinearGradient
+                        colors={["#667eea", "#764ba2"]}
+                        style={styles.avatarGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      >
+                        <Text style={styles.avatarText}>
+                          {otherUsername?.charAt(0).toUpperCase()}
+                        </Text>
+                      </LinearGradient>
+                    </View>
+                    <View style={styles.theirBubbleContainer}>
+                      <View style={styles.theirBubble}>
+                        <Text style={styles.theirMessageText}>{item.text}</Text>
+                      </View>
+                      <Text style={styles.theirMessageTime}>
+                        {formatTime(item.createdAt)}
+                      </Text>
+                    </View>
+                  </View>
+                )}
               </View>
             );
           }}
         />
 
-        {/* INPUT */}
-        <View style={styles.inputRow}>
-          <TextInput
-            value={text}
-            onChangeText={onChangeText}
-            placeholder="Mesaj yaz..."
-            placeholderTextColor="#999"
-            style={styles.input}
-          />
-          <TouchableOpacity
-            onPress={onSend}
-            disabled={!text.trim()}
-          >
-            <Text
+        {/* Input Section */}
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              value={text}
+              onChangeText={onChangeText}
+              placeholder="Mesajınızı yazın..."
+              placeholderTextColor="#94a3b8"
+              style={styles.input}
+              multiline
+              maxLength={1000}
+            />
+            <TouchableOpacity
+              onPress={onSend}
+              disabled={!text.trim()}
               style={[
-                styles.send,
-                !text.trim() && { opacity: 0.4 },
+                styles.sendButton,
+                !text.trim() && styles.sendButtonDisabled,
               ]}
+              activeOpacity={0.8}
             >
-              Gönder
-            </Text>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={
+                  !text.trim()
+                    ? ["#cbd5e1", "#94a3b8"]
+                    : ["#667eea", "#764ba2"]
+                }
+                style={styles.sendGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Ionicons name="send" size={20} color="#fff" />
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-/* =========================
-   STYLES
-========================= */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f5f7fa",
   },
-  bubble: {
-    maxWidth: "78%",
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 10,
+
+  keyboardView: {
+    flex: 1,
   },
-  mine: {
-    alignSelf: "flex-end",
-    backgroundColor: "#667eea",
+
+  headerRight: {
+    marginRight: 16,
   },
-  theirs: {
-    alignSelf: "flex-start",
-    backgroundColor: "#f1f1f5",
-  },
-  text: {
-    fontSize: 15,
-    color: "#111",
-  },
-  inputRow: {
-    flexDirection: "row",
+
+  headerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
-    padding: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
+    justifyContent: "center",
   },
+
+  headerAvatarText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  messagesList: {
+    padding: 16,
+    flexGrow: 1,
+  },
+
+  messageContainer: {
+    marginBottom: 16,
+  },
+
+  myMessageWrapper: {
+    alignItems: "flex-end",
+  },
+
+  myBubble: {
+    maxWidth: "78%",
+    borderRadius: 20,
+    borderTopRightRadius: 4,
+    overflow: "hidden",
+    shadowColor: "#667eea",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  myBubbleGradient: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+
+  myMessageText: {
+    fontSize: 15,
+    lineHeight: 20,
+    color: "#fff",
+  },
+
+  myMessageTime: {
+    fontSize: 11,
+    color: "#94a3b8",
+    marginTop: 4,
+    marginRight: 4,
+    fontWeight: "500",
+  },
+
+  theirMessageWrapper: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+  },
+
+  theirAvatar: {
+    marginBottom: 16,
+  },
+
+  avatarGradient: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  avatarText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  theirBubbleContainer: {
+    flex: 1,
+  },
+
+  theirBubble: {
+    maxWidth: "90%",
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderTopLeftRadius: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  theirMessageText: {
+    fontSize: 15,
+    lineHeight: 20,
+    color: "#1e293b",
+  },
+
+  theirMessageTime: {
+    fontSize: 11,
+    color: "#94a3b8",
+    marginTop: 4,
+    marginLeft: 4,
+    fontWeight: "500",
+  },
+
+  emptyState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 80,
+    transform: [{ scaleY: -1 }],
+  },
+
+  emptyIconContainer: {
+    marginBottom: 24,
+  },
+
+  emptyIconGradient: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1e293b",
+    marginBottom: 8,
+  },
+
+  emptyText: {
+    fontSize: 15,
+    color: "#64748b",
+    textAlign: "center",
+  },
+
+  inputContainer: {
+    backgroundColor: "#fff",
+    paddingTop: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#e2e8f0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 10,
+  },
+
   input: {
     flex: 1,
-    backgroundColor: "#f1f1f5",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 44,
-    color: "#111",
+    backgroundColor: "#f8fafc",
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#e2e8f0",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: "#1e293b",
+    maxHeight: 100,
   },
-  send: {
-    marginLeft: 12,
-    fontWeight: "800",
-    color: "#667eea",
+
+  sendButton: {
+    borderRadius: 24,
+    overflow: "hidden",
+    shadowColor: "#667eea",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+
+  sendButtonDisabled: {
+    shadowOpacity: 0.1,
+    elevation: 1,
+  },
+
+  sendGradient: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

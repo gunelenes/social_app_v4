@@ -1,25 +1,34 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useLayoutEffect } from "react";
 import {
   Dimensions,
   Image,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { auth } from "../firebase/firebaseConfig";
 import { subscribeMyProfilePosts } from "../firebase/posts";
+import { Ionicons } from "@expo/vector-icons";
 
 type TabType = "posts" | "files" | "notes" | "polls";
 
-export default function ProfileScreen() {
+const { width } = Dimensions.get("window");
+const GRID_ITEM_SIZE = (width - 52) / 3;
+
+export default function ProfileScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState<TabType>("posts");
   const [posts, setPosts] = useState<any[]>([]);
 
-  /* 🔥 REAL-TIME PROFILE POSTS */
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, []);
+
   useEffect(() => {
     const unsubscribe = subscribeMyProfilePosts(setPosts);
     return unsubscribe;
@@ -27,119 +36,192 @@ export default function ProfileScreen() {
 
   const username = auth.currentUser?.email?.split("@")[0] ?? "";
 
-  /* 🔹 SEGMENT FILTER */
   const filteredPosts = useMemo(() => {
     switch (activeTab) {
       case "notes":
         return posts.filter((p) => p.type === "note");
-
       case "posts":
         return posts.filter((p) => p.type === "image");
-
       case "files":
         return posts.filter((p) => p.type === "file");
-
       case "polls":
         return posts.filter((p) => p.type === "poll");
-
       default:
         return [];
     }
   }, [activeTab, posts]);
 
+  const tabs = [
+    { key: "posts", label: "Gönderiler", icon: "images" },
+    { key: "files", label: "Dosyalar", icon: "document-attach" },
+    { key: "notes", label: "Notlar", icon: "document-text" },
+    { key: "polls", label: "Anketler", icon: "bar-chart" },
+  ];
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* HEADER */}
+        {/* Header Gradient */}
         <LinearGradient
           colors={["#667eea", "#764ba2"]}
           style={styles.headerGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
-          <View style={styles.avatarSection}>
-            <View style={styles.avatarRing}>
-              <Image
-                source={{ uri: "https://i.pravatar.cc/150?img=3" }}
-                style={styles.avatar}
-              />
+          <SafeAreaView edges={["top"]}>
+            {/* Settings Button */}
+            <View style={styles.headerTop}>
+              <View style={{ width: 40 }} />
+              <Text style={styles.headerTitle}>Profil</Text>
+              <TouchableOpacity
+                style={styles.settingsButton}
+                onPress={() => {}}
+              >
+                <Ionicons name="settings-outline" size={24} color="#fff" />
+              </TouchableOpacity>
             </View>
-            <Text style={styles.username}>{username}</Text>
-          </View>
+
+            {/* Avatar Section */}
+            <View style={styles.avatarSection}>
+              <View style={styles.avatarContainer}>
+                <LinearGradient
+                  colors={["rgba(255,255,255,0.3)", "rgba(255,255,255,0.1)"]}
+                  style={styles.avatarRing}
+                >
+                  <View style={styles.avatarWrapper}>
+                    <Image
+                      source={{ uri: "https://i.pravatar.cc/150?img=3" }}
+                      style={styles.avatar}
+                    />
+                  </View>
+                </LinearGradient>
+                <View style={styles.verifiedBadge}>
+                  <Ionicons name="checkmark-circle" size={28} color="#10b981" />
+                </View>
+              </View>
+              <Text style={styles.username}>@{username}</Text>
+              <Text style={styles.userBio}>DEÜ Öğrencisi 🎓</Text>
+            </View>
+          </SafeAreaView>
         </LinearGradient>
 
-        {/* STATS */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNum}>{posts.length}</Text>
-            <Text style={styles.statText}>Gönderi</Text>
+        {/* Stats Card */}
+        <View style={styles.statsCard}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{posts.length}</Text>
+            <Text style={styles.statLabel}>Gönderi</Text>
           </View>
 
-          <View style={styles.divider} />
+          <View style={styles.statDivider} />
 
-          <View style={styles.statBox}>
-            <Text style={styles.statNum}>0</Text>
-            <Text style={styles.statText}>Takipçi</Text>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>
+              {posts.filter((p) => p.type === "image").length}
+            </Text>
+            <Text style={styles.statLabel}>Fotoğraf</Text>
           </View>
 
-          <View style={styles.divider} />
+          <View style={styles.statDivider} />
 
-          <View style={styles.statBox}>
-            <Text style={styles.statNum}>0</Text>
-            <Text style={styles.statText}>Takip</Text>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>
+              {posts.filter((p) => p.type === "poll").length}
+            </Text>
+            <Text style={styles.statLabel}>Anket</Text>
           </View>
         </View>
 
-        {/* ACTIONS */}
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.editBtn}>
-            <Text style={styles.editText}>✏️ Profili Düzenle</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.shareBtn}>
-            <Text style={{ fontSize: 20 }}>📤</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* SEGMENT */}
-        <View style={styles.segmentBar}>
-          {["posts", "files", "notes", "polls"].map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[
-                styles.segmentBtn,
-                activeTab === tab && styles.segmentBtnActive,
-              ]}
-              onPress={() => setActiveTab(tab as TabType)}
+        {/* Action Buttons */}
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity style={styles.editButton} activeOpacity={0.8}>
+            <LinearGradient
+              colors={["#667eea", "#764ba2"]}
+              style={styles.editGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
             >
+              <Ionicons name="create-outline" size={20} color="#fff" />
+              <Text style={styles.editButtonText}>Profili Düzenle</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.shareButton} activeOpacity={0.8}>
+            <Ionicons name="share-social-outline" size={20} color="#667eea" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Tabs */}
+        <View style={styles.tabsContainer}>
+          {tabs.map((tab) => (
+            <TouchableOpacity
+              key={tab.key}
+              style={[
+                styles.tab,
+                activeTab === tab.key && styles.tabActive,
+              ]}
+              onPress={() => setActiveTab(tab.key as TabType)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={tab.icon as any}
+                size={20}
+                color={activeTab === tab.key ? "#667eea" : "#94a3b8"}
+              />
               <Text
                 style={[
-                  styles.segmentText,
-                  activeTab === tab && styles.segmentTextActive,
+                  styles.tabText,
+                  activeTab === tab.key && styles.tabTextActive,
                 ]}
               >
-                {tab === "posts"
-                  ? "Gönderiler"
-                  : tab === "files"
-                  ? "Dosyalar"
-                  : tab === "notes"
-                  ? "Mesajlar"
-                  : "Anketler"}
+                {tab.label}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* CONTENT */}
+        {/* Content Grid */}
         {filteredPosts.length === 0 ? (
-          <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>Henüz içerik yok</Text>
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconContainer}>
+              <LinearGradient
+                colors={["#f0f4ff", "#e0e7ff"]}
+                style={styles.emptyIconGradient}
+              >
+                <Ionicons
+                  name={
+                    activeTab === "posts"
+                      ? "images-outline"
+                      : activeTab === "files"
+                      ? "document-attach-outline"
+                      : activeTab === "notes"
+                      ? "document-text-outline"
+                      : "bar-chart-outline"
+                  }
+                  size={64}
+                  color="#667eea"
+                />
+              </LinearGradient>
+            </View>
+            <Text style={styles.emptyTitle}>Henüz içerik yok</Text>
+            <Text style={styles.emptyText}>
+              {activeTab === "posts"
+                ? "Henüz fotoğraf paylaşmadınız"
+                : activeTab === "files"
+                ? "Henüz dosya paylaşmadınız"
+                : activeTab === "notes"
+                ? "Henüz not paylaşmadınız"
+                : "Henüz anket oluşturmadınız"}
+            </Text>
           </View>
         ) : (
           <View style={styles.grid}>
             {filteredPosts.map((post) => (
-              <View key={post.id} style={styles.gridItem}>
-                {/* 🖼 IMAGE */}
+              <TouchableOpacity
+                key={post.id}
+                style={styles.gridItem}
+                activeOpacity={0.8}
+              >
+                {/* IMAGE */}
                 {post.type === "image" && (
                   <Image
                     source={{ uri: post.image_url }}
@@ -147,179 +229,470 @@ export default function ProfileScreen() {
                   />
                 )}
 
-                {/* 📝 NOTE */}
+                {/* NOTE */}
                 {post.type === "note" && (
-                  <View style={styles.notePost}>
-                    <Text numberOfLines={4} style={styles.noteText}>
-                      {post.text}
-                    </Text>
-                  </View>
+                  <LinearGradient
+                    colors={["#667eea", "#764ba2"]}
+                    style={styles.notePost}
+                  >
+                    <View style={styles.noteContent}>
+                      <Ionicons
+                        name="document-text"
+                        size={24}
+                        color="rgba(255,255,255,0.3)"
+                        style={styles.noteIconSmall}
+                      />
+                      <Text numberOfLines={5} style={styles.noteText}>
+                        {post.text}
+                      </Text>
+                      <View style={styles.noteFooter}>
+                        <Ionicons name="calendar-outline" size={10} color="rgba(255,255,255,0.7)" />
+                        <Text style={styles.noteDate}>
+                          {post.created_date?.toDate
+                            ? new Date(post.created_date.toDate()).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
+                            : ''}
+                        </Text>
+                      </View>
+                    </View>
+                  </LinearGradient>
                 )}
 
-                {/* 📎 FILE */}
+                {/* FILE */}
                 {post.type === "file" && (
                   <View style={styles.filePost}>
-                    <Text style={styles.fileIcon}>📎</Text>
+                    <View style={styles.fileIconContainer}>
+                      <Ionicons name="document" size={40} color="#667eea" />
+                    </View>
                     <Text numberOfLines={2} style={styles.fileName}>
                       {post.file_name}
                     </Text>
+                    <Text style={styles.fileType}>{post.file_type}</Text>
                   </View>
                 )}
 
-                {/* 📊 POLL */}
+                {/* POLL */}
                 {post.type === "poll" && (
-                  <View style={styles.pollPost}>
-                    <Text numberOfLines={3} style={styles.pollText}>
-                      {post.text}
-                    </Text>
-                    <Text style={styles.pollSub}>Anket</Text>
-                  </View>
+                  <LinearGradient
+                    colors={["#f59e0b", "#f97316"]}
+                    style={styles.pollPost}
+                  >
+                    <View style={styles.pollContent}>
+                      <Ionicons
+                        name="bar-chart"
+                        size={28}
+                        color="rgba(255,255,255,0.4)"
+                        style={styles.pollIconLarge}
+                      />
+                      <Text numberOfLines={3} style={styles.pollQuestion}>
+                        {post.text}
+                      </Text>
+                      <View style={styles.pollStats}>
+                        <View style={styles.pollStatItem}>
+                          <Ionicons name="people" size={12} color="#fff" />
+                          <Text style={styles.pollStatText}>
+                            {Array.isArray(post.poll_options)
+                              ? post.poll_options.reduce((sum: number, opt: any) => sum + (opt.votes || 0), 0)
+                              : 0}
+                          </Text>
+                        </View>
+                        <View style={styles.pollStatItem}>
+                          <Ionicons name="options" size={12} color="#fff" />
+                          <Text style={styles.pollStatText}>
+                            {Array.isArray(post.poll_options) ? post.poll_options.length : 0} seçenek
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </LinearGradient>
                 )}
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}
+
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
 }
 
-/* ---------------- STYLES ---------------- */
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f9fa" },
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f7fa",
+  },
 
   headerGradient: {
-    paddingTop: 60,
-    paddingBottom: 100,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    paddingBottom: 40,
   },
 
-  avatarSection: { alignItems: "center" },
-
-  avatarRing: {
-    padding: 5,
-    borderRadius: 70,
-    backgroundColor: "rgba(255,255,255,0.3)",
+  headerTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    marginBottom: 20,
   },
 
-  avatar: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    borderWidth: 4,
-    borderColor: "#fff",
-  },
-
-  username: {
-    marginTop: 14,
-    fontSize: 22,
+  headerTitle: {
+    fontSize: 20,
     fontWeight: "700",
     color: "#fff",
   },
 
-  statsRow: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    marginHorizontal: 30,
-    marginTop: -50,
+  settingsButton: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    padding: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  statBox: { flex: 1, alignItems: "center" },
-  statNum: { fontSize: 22, fontWeight: "700", color: "#667eea" },
-  statText: { fontSize: 12, color: "#8e8e93" },
-  divider: { width: 1, backgroundColor: "#e5e5ea" },
+  avatarSection: {
+    alignItems: "center",
+    paddingBottom: 20,
+  },
 
-  actions: {
+  avatarContainer: {
+    position: "relative",
+    marginBottom: 16,
+  },
+
+  avatarRing: {
+    padding: 6,
+    borderRadius: 68,
+  },
+
+  avatarWrapper: {
+    borderRadius: 62,
+    overflow: "hidden",
+  },
+
+  avatar: {
+    width: 124,
+    height: 124,
+    borderWidth: 4,
+    borderColor: "#fff",
+    borderRadius: 62,
+  },
+
+  verifiedBadge: {
+    position: "absolute",
+    bottom: 4,
+    right: 4,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  username: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#fff",
+    marginBottom: 4,
+  },
+
+  userBio: {
+    fontSize: 15,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: "500",
+  },
+
+  statsCard: {
     flexDirection: "row",
+    backgroundColor: "#fff",
     marginHorizontal: 20,
+    marginTop: -20,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+
+  statItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+
+  statNumber: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#667eea",
+    marginBottom: 4,
+  },
+
+  statLabel: {
+    fontSize: 13,
+    color: "#64748b",
+    fontWeight: "600",
+  },
+
+  statDivider: {
+    width: 1,
+    backgroundColor: "#e2e8f0",
+    marginHorizontal: 8,
+  },
+
+  actionsContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
     marginTop: 20,
     gap: 12,
   },
 
-  editBtn: {
+  editButton: {
     flex: 1,
-    backgroundColor: "#667eea",
-    paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 14,
+    overflow: "hidden",
+    shadowColor: "#667eea",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+
+  editGradient: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    gap: 8,
   },
 
-  editText: { color: "#fff", fontWeight: "600", fontSize: 16 },
+  editButtonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
 
-  shareBtn: {
+  shareButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     backgroundColor: "#fff",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
-  segmentBar: {
+  tabsContainer: {
     flexDirection: "row",
     backgroundColor: "#fff",
-    marginTop: 20,
     marginHorizontal: 20,
-    borderRadius: 14,
+    marginTop: 20,
+    borderRadius: 16,
     padding: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
 
-  segmentBtn: { flex: 1, paddingVertical: 10, borderRadius: 12 },
-  segmentBtnActive: { backgroundColor: "#667eea" },
-  segmentText: { textAlign: "center", color: "#444" },
-  segmentTextActive: { color: "#fff", fontWeight: "600" },
+  tab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    gap: 6,
+  },
 
-  emptyBox: { marginTop: 40, alignItems: "center" },
-  emptyText: { color: "#8e8e93", fontSize: 15 },
+  tabActive: {
+    backgroundColor: "#f0f4ff",
+  },
+
+  tabText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#94a3b8",
+  },
+
+  tabTextActive: {
+    color: "#667eea",
+  },
+
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 80,
+    paddingHorizontal: 32,
+  },
+
+  emptyIconContainer: {
+    marginBottom: 24,
+  },
+
+  emptyIconGradient: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1e293b",
+    marginBottom: 8,
+  },
+
+  emptyText: {
+    fontSize: 15,
+    color: "#64748b",
+    textAlign: "center",
+  },
 
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 2,
     paddingHorizontal: 20,
-    marginTop: 20,
+    paddingTop: 20,
+    justifyContent: "space-between",
   },
 
   gridItem: {
-    width: (Dimensions.get("window").width - 42) / 2,
-    height: (Dimensions.get("window").width - 42) / 2,
+    width: GRID_ITEM_SIZE,
+    height: GRID_ITEM_SIZE,
     borderRadius: 16,
     overflow: "hidden",
-    backgroundColor: "#f1f1f5",
+    backgroundColor: "#f8fafc",
+    marginBottom: 8,
   },
 
-  postImage: { width: "100%", height: "100%" },
+  postImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
 
   notePost: {
     flex: 1,
-    backgroundColor: "#667eea",
-    alignItems: "center",
-    justifyContent: "center",
     padding: 12,
+    justifyContent: "space-between",
   },
 
-  noteText: { color: "#fff", textAlign: "center" },
+  noteContent: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+
+  noteIconSmall: {
+    alignSelf: "flex-end",
+    marginBottom: 8,
+  },
+
+  noteText: {
+    color: "#fff",
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "500",
+    flex: 1,
+  },
+
+  noteFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 8,
+  },
+
+  noteDate: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 9,
+    fontWeight: "600",
+  },
 
   filePost: {
     flex: 1,
+    padding: 16,
     alignItems: "center",
     justifyContent: "center",
-    padding: 12,
+    backgroundColor: "#f8fafc",
   },
 
-  fileIcon: { fontSize: 32 },
-  fileName: { marginTop: 6, textAlign: "center", fontSize: 13 },
+  fileIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#e0e7ff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+
+  fileName: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1e293b",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+
+  fileType: {
+    fontSize: 10,
+    color: "#94a3b8",
+    fontWeight: "500",
+  },
 
   pollPost: {
     flex: 1,
-    backgroundColor: "#764ba2",
-    alignItems: "center",
-    justifyContent: "center",
     padding: 12,
   },
 
-  pollText: { color: "#fff", textAlign: "center", fontWeight: "600" },
-  pollSub: { marginTop: 6, color: "#eee", fontSize: 12 },
+  pollContent: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+
+  pollIconLarge: {
+    alignSelf: "flex-end",
+    marginBottom: 8,
+  },
+
+  pollQuestion: {
+    color: "#fff",
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: "700",
+    flex: 1,
+  },
+
+  pollStats: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+
+  pollStatItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    gap: 4,
+  },
+
+  pollStatText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
+  },
 });
