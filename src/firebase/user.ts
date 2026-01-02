@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp,updateDoc } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 import { User } from "firebase/auth";
 
@@ -15,4 +15,15 @@ export const createUserIfNotExists = async (user: User) => {
       username: user.email?.split("@")[0], // geçici username
     });
   }
+};
+
+export const updateUserProfile = async (
+  uid: string,
+  data: {
+    bio?: string;
+    photo_url?: string;
+  }
+) => {
+  const ref = doc(db, "users", uid);
+  await updateDoc(ref, data);
 };

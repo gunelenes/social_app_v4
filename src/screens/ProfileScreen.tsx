@@ -1,5 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useMemo, useState, useLayoutEffect } from "react";
+
 import {
   Dimensions,
   Image,
@@ -9,12 +10,30 @@ import {
   TouchableOpacity,
   View,
   Modal,
+  TextInput,
   Alert,
+  Platform,
+  ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { auth } from "../firebase/firebaseConfig";
-import { subscribeMyProfilePosts, votePollSingleChoice } from "../firebase/posts";
 import { Ionicons } from "@expo/vector-icons";
+
+import * as ImagePicker from "expo-image-picker";
+
+import { auth, db, storage } from "../firebase/firebaseConfig";
+import { subscribeMyProfilePosts, votePollSingleChoice } from "../firebase/posts";
+
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 type TabType = "posts" | "files" | "notes" | "polls";
 
@@ -27,18 +46,80 @@ export default function ProfileScreen({ navigation }: any) {
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  // ✅ Profile user data (Firestore)
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileUsername, setProfileUsername] = useState("");
+  const [profileFaculty, setProfileFaculty] = useState("Dokuz Eylül Üniversitesi");
+  const [profileBio, setProfileBio] = useState("DEÜ Öğrencisi 🎓");
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+
+  // ✅ Edit modal
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editBio, setEditBio] = useState("");
+  const [editPhotoUrl, setEditPhotoUrl] = useState<string | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [pickingPhoto, setPickingPhoto] = useState(false);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
     });
   }, []);
 
+  // ✅ Subscribe my posts
   useEffect(() => {
     const unsubscribe = subscribeMyProfilePosts(setPosts);
     return unsubscribe;
   }, []);
 
-  const username = auth.currentUser?.email?.split("@")[0] ?? "";
+  // ✅ Load my user profile (Firestore: users/{uid})
+  useEffect(() => {
+    const loadProfile = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        setProfileLoading(true);
+        const fallbackUsername = user.email?.split("@")[0] ?? "";
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+
+        if (!snap.exists()) {
+          // create minimal user if missing (username & faculty set once)
+          await setDoc(userRef, {
+            uid: user.uid,
+            email: user.email,
+            emailVerified: user.emailVerified,
+            createdAt: serverTimestamp(),
+            username: fallbackUsername,
+            faculty: "Dokuz Eylül Üniversitesi",
+            bio: "DEÜ Öğrencisi 🎓",
+            photo_url: "",
+          });
+          setProfileUsername(fallbackUsername);
+          setProfileFaculty("Dokuz Eylül Üniversitesi");
+          setProfileBio("DEÜ Öğrencisi 🎓");
+          setProfilePhotoUrl(null);
+        } else {
+          const data: any = snap.data();
+          setProfileUsername(data.username ?? fallbackUsername);
+          setProfileFaculty(data.faculty ?? "Dokuz Eylül Üniversitesi");
+          setProfileBio(data.bio ?? "DEÜ Öğrencisi 🎓");
+          const photo = (data.photo_url ?? "").trim();
+          setProfilePhotoUrl(photo.length ? photo : null);
+        }
+      } catch (e: any) {
+        console.log("Profile load error:", e?.message);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const filteredPosts = useMemo(() => {
     switch (activeTab) {
@@ -76,8 +157,7 @@ export default function ProfileScreen({ navigation }: any) {
     if (!timestamp?.toDate) return "";
     return new Date(timestamp.toDate()).toLocaleDateString("tr-TR", {
       day: "numeric",
-      month: "long",
-      year: "numeric",
+      month: "short",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -88,10 +168,123 @@ export default function ProfileScreen({ navigation }: any) {
     await votePollSingleChoice(selectedPost.id, optionIndex);
   };
 
+  // ✅ Open edit modal, prefill fields
+  const openEditProfile = () => {
+    setEditBio(profileBio);
+    setEditPhotoUrl(profilePhotoUrl);
+    setEditModalVisible(true);
+  };
+
+  // ✅ Pick image + upload to Storage + set editPhotoUrl
+  const pickAndUploadAvatar = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      setPickingPhoto(true);
+
+      // permission
+      if (Platform.OS !== "web") {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("İzin gerekli", "Galeri izni vermen gerekiyor.");
+          return;
+        }
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
+
+      if (result.canceled) return;
+
+      const asset = result.assets?.[0];
+      if (!asset?.uri) return;
+
+      // uri -> blob
+      const resp = await fetch(asset.uri);
+      const blob = await resp.blob();
+
+      const fileName = `avatar_${Date.now()}.jpg`;
+      const storagePath = `images/${user.uid}/avatar.jpg`;
+      const storageRef = ref(storage, storagePath);
+
+      await uploadBytes(storageRef, blob, {
+        contentType: "image/jpeg",
+      });
+
+      const url = await getDownloadURL(storageRef);
+      setEditPhotoUrl(url);
+
+    } catch (e: any) {
+      console.log("Avatar upload error:", e?.message);
+      Alert.alert("Hata", "Fotoğraf yüklenemedi. Tekrar dene.");
+    } finally {
+      setPickingPhoto(false);
+    }
+  };
+
+  // ✅ Save only bio + photo_url (username & faculty immutable)
+  const saveProfile = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      setSavingProfile(true);
+
+      const userRef = doc(db, "users", user.uid);
+
+      // update only allowed fields
+      await updateDoc(userRef, {
+        bio: (editBio ?? "").trim(),
+        photo_url: editPhotoUrl ?? "",
+      });
+
+      // update UI state
+      setProfileBio((editBio ?? "").trim() || "DEÜ Öğrencisi 🎓");
+      setProfilePhotoUrl(editPhotoUrl ?? null);
+
+      setEditModalVisible(false);
+    } catch (e: any) {
+      console.log("Save profile error:", e?.message);
+
+      // if doc doesn't exist for some reason, create merge
+      try {
+        const fallbackUsername = user.email?.split("@")[0] ?? "";
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            uid: user.uid,
+            email: user.email,
+            emailVerified: user.emailVerified,
+            createdAt: serverTimestamp(),
+            username: profileUsername || fallbackUsername, // immutable
+            faculty: profileFaculty || "Dokuz Eylül Üniversitesi", // immutable
+            bio: (editBio ?? "").trim(),
+            photo_url: editPhotoUrl ?? "",
+          },
+          { merge: true }
+        );
+        setProfileBio((editBio ?? "").trim() || "DEÜ Öğrencisi 🎓");
+        setProfilePhotoUrl(editPhotoUrl ?? null);
+        setEditModalVisible(false);
+      } catch {
+        Alert.alert("Hata", "Profil kaydedilemedi. Tekrar dene.");
+      }
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const avatarUri =
+    profilePhotoUrl ?? "https://i.pravatar.cc/150?img=3";
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header Gradient */}
         <LinearGradient
           colors={["#667eea", "#764ba2"]}
           style={styles.headerGradient}
@@ -114,23 +307,35 @@ export default function ProfileScreen({ navigation }: any) {
                   style={styles.avatarRing}
                 >
                   <View style={styles.avatarWrapper}>
-                    <Image
-                      source={{ uri: "https://i.pravatar.cc/150?img=3" }}
-                      style={styles.avatar}
-                    />
+                    <Image source={{ uri: avatarUri }} style={styles.avatar} />
                   </View>
                 </LinearGradient>
                 <View style={styles.verifiedBadge}>
                   <Ionicons name="checkmark-circle" size={28} color="#10b981" />
                 </View>
               </View>
-              <Text style={styles.username}>@{username}</Text>
-              <Text style={styles.userBio}>DEÜ Öğrencisi 🎓</Text>
+
+              {profileLoading ? (
+                <View style={{ marginTop: 8 }}>
+                  <ActivityIndicator color="#fff" />
+                </View>
+              ) : (
+                <>
+                  <Text style={styles.username}>@{profileUsername}</Text>
+                  {/* ✅ Bio değişebilir; Fakülte sabit gösterilsin */}
+                  <Text style={styles.userBio}>
+                    {(profileBio && profileBio.trim().length > 0)
+                      ? profileBio
+                      : "DEÜ Öğrencisi 🎓"}
+                    {"  "}
+                    <Text style={{ opacity: 0.85 }}>• {profileFaculty}</Text>
+                  </Text>
+                </>
+              )}
             </View>
           </SafeAreaView>
         </LinearGradient>
 
-        {/* Stats Card */}
         <View style={styles.statsCard}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{posts.length}</Text>
@@ -152,9 +357,12 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Action Buttons */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.editButton} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.editButton}
+            activeOpacity={0.8}
+            onPress={openEditProfile}
+          >
             <LinearGradient
               colors={["#667eea", "#764ba2"]}
               style={styles.editGradient}
@@ -171,7 +379,6 @@ export default function ProfileScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* Tabs */}
         <View style={styles.tabsContainer}>
           {tabs.map((tab) => (
             <TouchableOpacity
@@ -197,7 +404,6 @@ export default function ProfileScreen({ navigation }: any) {
           ))}
         </View>
 
-        {/* Content Grid */}
         {filteredPosts.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconContainer}>
@@ -242,7 +448,7 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Detail Modal */}
+      {/* ================== POST DETAIL MODAL ================== */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -250,23 +456,18 @@ export default function ProfileScreen({ navigation }: any) {
         onRequestClose={closeModal}
       >
         <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={closeModal}
+          />
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {selectedPost?.type === "image"
-                  ? "Fotoğraf"
-                  : selectedPost?.type === "note"
-                  ? "Not"
-                  : selectedPost?.type === "file"
-                  ? "Dosya"
-                  : "Anket"}
-              </Text>
-              <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                <Ionicons name="close" size={28} color="#1e293b" />
-              </TouchableOpacity>
-            </View>
+            <View style={styles.modalHandle} />
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalScroll}
+            >
               {selectedPost?.type === "image" && (
                 <ImageDetail post={selectedPost} formatDate={formatDate} />
               )}
@@ -277,9 +478,170 @@ export default function ProfileScreen({ navigation }: any) {
                 <FileDetail post={selectedPost} formatDate={formatDate} />
               )}
               {selectedPost?.type === "poll" && (
-                <PollDetail post={selectedPost} formatDate={formatDate} onVote={handleVote} />
+                <PollDetail
+                  post={selectedPost}
+                  formatDate={formatDate}
+                  onVote={handleVote}
+                />
               )}
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.actionBtnShare} activeOpacity={0.7}>
+                  <LinearGradient
+                    colors={["#667eea", "#764ba2"]}
+                    style={styles.actionBtnGrad}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <Ionicons name="share-social-outline" size={20} color="#fff" />
+                    <Text style={styles.actionTextWhite}>Paylaş</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.actionBtnDanger} activeOpacity={0.7}>
+                  <Ionicons name="trash-outline" size={20} color="#ef4444" />
+                  <Text style={styles.actionTextDanger}>Sil</Text>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
+
+            <TouchableOpacity style={styles.closeBtn} onPress={closeModal}>
+              <View style={styles.closeBtnInner}>
+                <Ionicons name="close" size={22} color="#64748b" />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ================== EDIT PROFILE MODAL ================== */}
+      <Modal
+        animationType="slide"
+        transparent
+        visible={editModalVisible}
+        onRequestClose={() => {
+          Keyboard.dismiss();
+          setEditModalVisible(false);
+        }}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
+        >
+          {/* 👇 Boş alana dokununca klavye kapanır */}
+          <Pressable
+            style={styles.editOverlay}
+            onPress={Keyboard.dismiss}
+          >
+            {/* 👇 İçeriğe basınca klavye KAPANMAZ */}
+            <Pressable
+              style={styles.editContent}
+              onPress={() => {}}
+            >
+              {/* ---- MODAL İÇERİĞİN ---- */}
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+        <View style={styles.editOverlay}>
+          <TouchableOpacity
+            style={styles.editBackdrop}
+            activeOpacity={1}
+            onPress={() => setEditModalVisible(false)}
+          />
+          <View style={styles.editContent}>
+            <View style={styles.editHeader}>
+              <Text style={styles.editTitle}>Profili Düzenle</Text>
+              <TouchableOpacity
+                style={styles.editClose}
+                onPress={() => setEditModalVisible(false)}
+              >
+                <Ionicons name="close" size={22} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Avatar */}
+            <TouchableOpacity
+              style={styles.editAvatarWrap}
+              activeOpacity={0.8}
+              onPress={pickAndUploadAvatar}
+              disabled={pickingPhoto}
+            >
+              <Image
+                source={{
+                  uri: editPhotoUrl ?? "https://i.pravatar.cc/150?img=3",
+                }}
+                style={styles.editAvatar}
+              />
+              <View style={styles.editAvatarBadge}>
+                {pickingPhoto ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Ionicons name="camera" size={16} color="#fff" />
+                )}
+              </View>
+            </TouchableOpacity>
+
+            <Text style={styles.editHint}>Fotoğrafı değiştirmek için dokun</Text>
+
+            {/* Immutable fields */}
+            <View style={styles.readOnlyCard}>
+              <View style={styles.readOnlyRow}>
+                <Ionicons name="person-circle-outline" size={20} color="#667eea" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.readOnlyLabel}>Kullanıcı Adı (Sabit)</Text>
+                  <Text style={styles.readOnlyValue}>@{profileUsername}</Text>
+                </View>
+              </View>
+
+              <View style={styles.readOnlyDivider} />
+
+              <View style={styles.readOnlyRow}>
+                <Ionicons name="school-outline" size={20} color="#667eea" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.readOnlyLabel}>Fakülte (Sabit)</Text>
+                  <Text style={styles.readOnlyValue}>{profileFaculty}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Bio editable */}
+            <Text style={styles.inputLabel2}>Kısa Açıklama</Text>
+            <TextInput
+              value={editBio}
+              onChangeText={setEditBio}
+              placeholder="Kendin hakkında kısa bir şey yaz…"
+              placeholderTextColor="#94a3b8"
+              maxLength={120}
+              multiline
+              style={styles.bioInput2}
+            />
+            <Text style={styles.counter}>{(editBio ?? "").length}/120</Text>
+
+            <View style={styles.editActions2}>
+              <TouchableOpacity
+                style={styles.cancelBtn2}
+                onPress={() => setEditModalVisible(false)}
+                disabled={savingProfile}
+              >
+                <Text style={styles.cancelText2}>İptal</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.saveBtn2, savingProfile && { opacity: 0.7 }]}
+                onPress={saveProfile}
+                disabled={savingProfile}
+                activeOpacity={0.85}
+              >
+                {savingProfile ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark" size={18} color="#fff" />
+                    <Text style={styles.saveText2}>Kaydet</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -287,7 +649,6 @@ export default function ProfileScreen({ navigation }: any) {
   );
 }
 
-// Grid Item Component
 const GridItem = ({ post, onPress }: any) => (
   <TouchableOpacity
     style={styles.gridItem}
@@ -338,7 +699,10 @@ const GridItem = ({ post, onPress }: any) => (
           <Ionicons name="people" size={10} color="#fff" />
           <Text style={styles.pollBadgeText}>
             {Array.isArray(post.poll_options)
-              ? post.poll_options.reduce((sum: number, opt: any) => sum + (opt.votes || 0), 0)
+              ? post.poll_options.reduce(
+                  (sum: number, opt: any) => sum + (opt.votes || 0),
+                  0
+                )
               : 0}{" "}
             oy
           </Text>
@@ -348,81 +712,82 @@ const GridItem = ({ post, onPress }: any) => (
   </TouchableOpacity>
 );
 
-// Detail Components
 const ImageDetail = ({ post, formatDate }: any) => (
   <View>
-    <Image source={{ uri: post.image_url }} style={styles.detailImage} />
+    <Image source={{ uri: post.image_url }} style={styles.detailImg} />
     {post.text && (
-      <View style={styles.detailSection}>
-        <Text style={styles.detailLabel}>Açıklama</Text>
-        <Text style={styles.detailText}>{post.text}</Text>
+      <View style={styles.detailBox}>
+        <Text style={styles.detailContent}>{post.text}</Text>
       </View>
     )}
-    <View style={styles.detailSection}>
-      <View style={styles.detailInfo}>
-        <Ionicons name="calendar-outline" size={16} color="#64748b" />
-        <Text style={styles.detailInfoText}>{formatDate(post.created_date)}</Text>
-      </View>
+    <View style={styles.detailMeta}>
+      <Ionicons name="time-outline" size={16} color="#94a3b8" />
+      <Text style={styles.metaText}>{formatDate(post.created_date)}</Text>
     </View>
   </View>
 );
 
 const NoteDetail = ({ post, formatDate }: any) => (
   <View>
-    <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.detailNoteHeader}>
-      <Ionicons name="document-text" size={48} color="rgba(255,255,255,0.3)" />
-    </LinearGradient>
-    <View style={styles.detailSection}>
-      <Text style={styles.detailLabel}>Not İçeriği</Text>
-      <Text style={styles.detailNoteText}>{post.text}</Text>
+    <View style={styles.noteHead}>
+      <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.noteGrad}>
+        <Ionicons name="document-text" size={36} color="#fff" />
+        <Text style={styles.noteTitle}>Not</Text>
+      </LinearGradient>
     </View>
-    <View style={styles.detailSection}>
-      <View style={styles.detailInfo}>
-        <Ionicons name="calendar-outline" size={16} color="#64748b" />
-        <Text style={styles.detailInfoText}>{formatDate(post.created_date)}</Text>
-      </View>
+    <View style={styles.detailBox}>
+      <Text style={styles.detailNote}>{post.text}</Text>
+    </View>
+    <View style={styles.detailMeta}>
+      <Ionicons name="time-outline" size={16} color="#94a3b8" />
+      <Text style={styles.metaText}>{formatDate(post.created_date)}</Text>
     </View>
   </View>
 );
 
 const FileDetail = ({ post, formatDate }: any) => (
   <View>
-    <View style={styles.detailFileHeader}>
-      <View style={styles.detailFileIcon}>
-        <Ionicons name="document" size={64} color="#667eea" />
+    <View style={styles.fileHead}>
+      <View style={styles.fileIconBig}>
+        <Ionicons name="document" size={52} color="#667eea" />
+      </View>
+      <Text style={styles.fileNameBig}>{post.file_name}</Text>
+      <View style={styles.fileChip}>
+        <Text style={styles.fileChipText}>{post.file_type}</Text>
       </View>
     </View>
-    <View style={styles.detailSection}>
-      <Text style={styles.detailLabel}>Dosya Adı</Text>
-      <Text style={styles.detailFileName}>{post.file_name}</Text>
-    </View>
-    <View style={styles.detailSection}>
-      <Text style={styles.detailLabel}>Dosya Tipi</Text>
-      <Text style={styles.detailText}>{post.file_type}</Text>
-    </View>
-    <View style={styles.detailSection}>
-      <View style={styles.detailInfo}>
-        <Ionicons name="calendar-outline" size={16} color="#64748b" />
-        <Text style={styles.detailInfoText}>{formatDate(post.created_date)}</Text>
+
+    {post.text && (
+      <View style={styles.detailBox}>
+        <Text style={styles.detailContent}>{post.text}</Text>
       </View>
-    </View>
-    <TouchableOpacity style={styles.downloadButton}>
+    )}
+
+    <TouchableOpacity style={styles.dlBtn} activeOpacity={0.7}>
       <LinearGradient
         colors={["#667eea", "#764ba2"]}
-        style={styles.downloadGradient}
+        style={styles.dlGrad}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
       >
-        <Ionicons name="download-outline" size={20} color="#fff" />
-        <Text style={styles.downloadText}>Dosyayı İndir</Text>
+        <Ionicons name="cloud-download-outline" size={24} color="#fff" />
+        <Text style={styles.dlText}>Dosyayı İndir</Text>
       </LinearGradient>
     </TouchableOpacity>
+
+    <View style={styles.detailMeta}>
+      <Ionicons name="time-outline" size={16} color="#94a3b8" />
+      <Text style={styles.metaText}>{formatDate(post.created_date)}</Text>
+    </View>
   </View>
 );
 
 const PollDetail = ({ post, formatDate, onVote }: any) => {
   const pollOptions = Array.isArray(post.poll_options) ? post.poll_options : [];
-  const totalVotes = pollOptions.reduce((sum: number, opt: any) => sum + (opt.votes || 0), 0);
+  const totalVotes = pollOptions.reduce(
+    (sum: number, opt: any) => sum + (opt.votes || 0),
+    0
+  );
   const maxVotes = Math.max(...pollOptions.map((o: any) => o.votes || 0), 0);
   const currentUserId = auth.currentUser?.uid;
   const userVote = post.voted_user_ids?.find((v: any) => v.user_id === currentUserId);
@@ -430,15 +795,31 @@ const PollDetail = ({ post, formatDate, onVote }: any) => {
 
   return (
     <View>
-      <LinearGradient colors={["#f59e0b", "#f97316"]} style={styles.detailPollHeader}>
-        <Ionicons name="bar-chart" size={48} color="rgba(255,255,255,0.3)" />
-        <Text style={styles.detailPollQuestion}>{post.text}</Text>
-      </LinearGradient>
+      <View style={styles.pollHead}>
+        <LinearGradient colors={["#f59e0b", "#f97316"]} style={styles.pollGrad}>
+          <Ionicons name="bar-chart" size={36} color="#fff" />
+          <Text style={styles.pollQuestion}>{post.text}</Text>
+        </LinearGradient>
+      </View>
 
-      <View style={styles.detailSection}>
-        <Text style={styles.detailLabel}>Seçenekler</Text>
+      <View style={styles.pollStatsRow}>
+        <View style={styles.statBox}>
+          <Ionicons name="people" size={22} color="#667eea" />
+          <Text style={styles.statNum}>{totalVotes}</Text>
+          <Text style={styles.statLbl}>Oy</Text>
+        </View>
+        <View style={styles.statDivSmall} />
+        <View style={styles.statBox}>
+          <Ionicons name="list" size={22} color="#f59e0b" />
+          <Text style={styles.statNum}>{pollOptions.length}</Text>
+          <Text style={styles.statLbl}>Seçenek</Text>
+        </View>
+      </View>
+
+      <View style={styles.optionsBox}>
         {pollOptions.map((opt: any, index: number) => {
-          const percent = totalVotes === 0 ? 0 : Math.round((opt.votes / totalVotes) * 100);
+          const percent =
+            totalVotes === 0 ? 0 : Math.round((opt.votes / totalVotes) * 100);
           const isTop = opt.votes === maxVotes && maxVotes > 0;
           const isSelected = votedIndex === index;
 
@@ -446,15 +827,26 @@ const PollDetail = ({ post, formatDate, onVote }: any) => {
             <TouchableOpacity
               key={index}
               onPress={() => onVote(index)}
-              style={[styles.pollOption, isSelected && styles.pollOptionSelected]}
+              style={[styles.optCard, isSelected && styles.optSelected]}
               activeOpacity={0.7}
             >
-              <View style={[styles.pollBar, { width: `${percent}%` }, isTop && styles.pollBarTop]} />
-              <View style={styles.pollOptionContent}>
-                <Text style={styles.pollOptionText}>{opt.text}</Text>
-                <View style={styles.pollOptionStats}>
-                  <Text style={styles.pollOptionPercent}>{percent}%</Text>
-                  <Text style={styles.pollOptionVotes}>({opt.votes})</Text>
+              <View
+                style={[
+                  styles.optBar,
+                  { width: `${percent}%` },
+                  isTop && styles.optBarTop,
+                ]}
+              />
+              <View style={styles.optRow}>
+                <View style={styles.optLeft}>
+                  <View style={[styles.optDot, isSelected && styles.optDotActive]}>
+                    {isSelected && <View style={styles.optDotIn} />}
+                  </View>
+                  <Text style={styles.optLabel}>{opt.text}</Text>
+                </View>
+                <View style={styles.optRight}>
+                  <Text style={styles.optPercent}>{percent}%</Text>
+                  <Text style={styles.optVotes}>({opt.votes})</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -462,26 +854,9 @@ const PollDetail = ({ post, formatDate, onVote }: any) => {
         })}
       </View>
 
-      <View style={styles.detailSection}>
-        <View style={styles.pollTotalStats}>
-          <View style={styles.pollStatCard}>
-            <Ionicons name="people" size={24} color="#667eea" />
-            <Text style={styles.pollStatNumber}>{totalVotes}</Text>
-            <Text style={styles.pollStatLabel}>Toplam Oy</Text>
-          </View>
-          <View style={styles.pollStatCard}>
-            <Ionicons name="options" size={24} color="#f59e0b" />
-            <Text style={styles.pollStatNumber}>{pollOptions.length}</Text>
-            <Text style={styles.pollStatLabel}>Seçenek</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.detailSection}>
-        <View style={styles.detailInfo}>
-          <Ionicons name="calendar-outline" size={16} color="#64748b" />
-          <Text style={styles.detailInfoText}>{formatDate(post.created_date)}</Text>
-        </View>
+      <View style={styles.detailMeta}>
+        <Ionicons name="time-outline" size={16} color="#94a3b8" />
+        <Text style={styles.metaText}>{formatDate(post.created_date)}</Text>
       </View>
     </View>
   );
@@ -511,7 +886,13 @@ const styles = StyleSheet.create({
   avatarContainer: { position: "relative", marginBottom: 16 },
   avatarRing: { padding: 6, borderRadius: 68 },
   avatarWrapper: { borderRadius: 62, overflow: "hidden" },
-  avatar: { width: 124, height: 124, borderWidth: 4, borderColor: "#fff", borderRadius: 62 },
+  avatar: {
+    width: 124,
+    height: 124,
+    borderWidth: 4,
+    borderColor: "#fff",
+    borderRadius: 62,
+  },
   verifiedBadge: {
     position: "absolute",
     bottom: 4,
@@ -525,7 +906,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   username: { fontSize: 24, fontWeight: "700", color: "#fff", marginBottom: 4 },
-  userBio: { fontSize: 15, color: "rgba(255, 255, 255, 0.9)", fontWeight: "500" },
+  userBio: {
+    fontSize: 15,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: "500",
+    textAlign: "center",
+    paddingHorizontal: 20,
+  },
   statsCard: {
     flexDirection: "row",
     backgroundColor: "#fff",
@@ -543,7 +930,12 @@ const styles = StyleSheet.create({
   statNumber: { fontSize: 24, fontWeight: "700", color: "#667eea", marginBottom: 4 },
   statLabel: { fontSize: 13, color: "#64748b", fontWeight: "600" },
   statDivider: { width: 1, backgroundColor: "#e2e8f0", marginHorizontal: 8 },
-  actionsContainer: { flexDirection: "row", paddingHorizontal: 20, marginTop: 20, gap: 12 },
+  actionsContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    marginTop: 20,
+    gap: 12,
+  },
   editButton: {
     flex: 1,
     borderRadius: 14,
@@ -601,64 +993,404 @@ const styles = StyleSheet.create({
   tabActive: { backgroundColor: "#f0f4ff" },
   tabText: { fontSize: 12, fontWeight: "600", color: "#94a3b8" },
   tabTextActive: { color: "#667eea" },
-  emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 80, paddingHorizontal: 32 },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 80,
+    paddingHorizontal: 32,
+  },
   emptyIconContainer: { marginBottom: 24 },
-  emptyIconGradient: { width: 100, height: 100, borderRadius: 50, alignItems: "center", justifyContent: "center" },
+  emptyIconGradient: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   emptyTitle: { fontSize: 20, fontWeight: "700", color: "#1e293b", marginBottom: 8 },
   emptyText: { fontSize: 15, color: "#64748b", textAlign: "center" },
-  grid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 20, paddingTop: 20, justifyContent: "space-between" },
-  gridItem: { width: GRID_ITEM_SIZE, height: GRID_ITEM_SIZE, borderRadius: 16, overflow: "hidden", backgroundColor: "#f8fafc", marginBottom: 8 },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    justifyContent: "space-between",
+  },
+  gridItem: {
+    width: GRID_ITEM_SIZE,
+    height: GRID_ITEM_SIZE,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#f8fafc",
+    marginBottom: 8,
+  },
   postImage: { width: "100%", height: "100%", resizeMode: "cover" },
   notePost: { flex: 1, padding: 12, justifyContent: "space-between" },
-  filePost: { flex: 1, padding: 16, alignItems: "center", justifyContent: "center", backgroundColor: "#f8fafc" },
-  fileIconContainer: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#e0e7ff", alignItems: "center", justifyContent: "center", marginBottom: 12 },
+  filePost: {
+    flex: 1,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f8fafc",
+  },
+  fileIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#e0e7ff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
   fileName: { fontSize: 12, fontWeight: "600", color: "#1e293b", textAlign: "center" },
   pollPost: { flex: 1, padding: 12, justifyContent: "space-between" },
   gridIcon: { alignSelf: "flex-end", marginBottom: 8 },
   gridNoteText: { color: "#fff", fontSize: 12, lineHeight: 16, fontWeight: "500", flex: 1 },
   gridPollText: { color: "#fff", fontSize: 13, lineHeight: 17, fontWeight: "700", flex: 1 },
-  pollBadge: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.2)", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, gap: 4, alignSelf: "flex-start" },
+  pollBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    gap: 4,
+    alignSelf: "flex-start",
+  },
   pollBadgeText: { color: "#fff", fontSize: 10, fontWeight: "700" },
 
-  // Modal Styles
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "flex-end" },
-  modalContent: { backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: height * 0.85, paddingBottom: 20 },
-  modalHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 20, borderBottomWidth: 1, borderBottomColor: "#e2e8f0" },
-  modalTitle: { fontSize: 20, fontWeight: "700", color: "#1e293b" },
-  closeButton: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
-  
-  // Detail Styles
-  detailImage: { width: "100%", height: 300, resizeMode: "cover" },
-  detailSection: { padding: 20 },
-  detailLabel: { fontSize: 14, fontWeight: "700", color: "#64748b", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 },
-  detailText: { fontSize: 16, color: "#1e293b", lineHeight: 24 },
-  detailNoteText: { fontSize: 17, color: "#1e293b", lineHeight: 26 },
-  detailFileName: { fontSize: 16, fontWeight: "600", color: "#1e293b", marginBottom: 4 },
-  detailInfo: { flexDirection: "row", alignItems: "center", gap: 8 },
-  detailInfoText: { fontSize: 14, color: "#64748b" },
-  detailNoteHeader: { height: 150, alignItems: "center", justifyContent: "center" },
-  detailFileHeader: { height: 180, alignItems: "center", justifyContent: "center", backgroundColor: "#f8fafc" },
-  detailFileIcon: { width: 100, height: 100, borderRadius: 50, backgroundColor: "#e0e7ff", alignItems: "center", justifyContent: "center" },
-  detailPollHeader: { padding: 24, alignItems: "center" },
-  detailPollQuestion: { fontSize: 20, fontWeight: "700", color: "#fff", textAlign: "center", marginTop: 16 },
-  
-  // Poll Option Styles
-  pollOption: { backgroundColor: "#f8fafc", borderRadius: 14, overflow: "hidden", marginBottom: 12, borderWidth: 2, borderColor: "transparent" },
-  pollOptionSelected: { borderColor: "#667eea", backgroundColor: "#f0f4ff" },
-  pollBar: { position: "absolute", left: 0, top: 0, bottom: 0, backgroundColor: "#e0e7ff", borderRadius: 12 },
-  pollBarTop: { backgroundColor: "#c7d2fe" },
-  pollOptionContent: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16 },
-  pollOptionText: { flex: 1, fontSize: 15, fontWeight: "600", color: "#1e293b", marginRight: 12 },
-  pollOptionStats: { flexDirection: "row", alignItems: "center", gap: 6 },
-  pollOptionPercent: { fontSize: 16, fontWeight: "700", color: "#667eea" },
-  pollOptionVotes: { fontSize: 13, color: "#64748b", fontWeight: "500" },
-  pollTotalStats: { flexDirection: "row", gap: 12 },
-  pollStatCard: { flex: 1, backgroundColor: "#f8fafc", padding: 16, borderRadius: 14, alignItems: "center" },
-  pollStatNumber: { fontSize: 24, fontWeight: "700", color: "#1e293b", marginTop: 8 },
-  pollStatLabel: { fontSize: 12, color: "#64748b", fontWeight: "600", marginTop: 4 },
-  
-  // Download Button
-  downloadButton: { marginHorizontal: 20, marginTop: 10, borderRadius: 14, overflow: "hidden" },
-  downloadGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14, gap: 8 },
-  downloadText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  // MODERN POST DETAIL MODAL
+  modalOverlay: { flex: 1, justifyContent: "flex-end" },
+  modalBackdrop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: height * 0.88,
+    paddingTop: 12,
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: "#cbd5e1",
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  modalScroll: { paddingBottom: 24 },
+  closeBtn: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    zIndex: 10,
+  },
+  closeBtnInner: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(248, 250, 252, 0.95)",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  // DETAIL STYLES
+  detailImg: { width: "100%", height: 300, resizeMode: "cover" },
+  detailBox: { paddingHorizontal: 20, paddingVertical: 16 },
+  detailContent: { fontSize: 15, color: "#1e293b", lineHeight: 22 },
+  detailNote: { fontSize: 16, color: "#1e293b", lineHeight: 24 },
+  detailMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: "#f8fafc",
+    marginHorizontal: 20,
+    marginVertical: 12,
+    borderRadius: 12,
+  },
+  metaText: { fontSize: 13, color: "#64748b", fontWeight: "500" },
+
+  noteHead: { marginBottom: 16 },
+  noteGrad: {
+    paddingVertical: 32,
+    alignItems: "center",
+    gap: 12,
+  },
+  noteTitle: { fontSize: 18, fontWeight: "700", color: "#fff" },
+
+  fileHead: {
+    paddingVertical: 32,
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+    marginBottom: 16,
+  },
+  fileIconBig: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: "#eff6ff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  fileNameBig: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1e293b",
+    textAlign: "center",
+    paddingHorizontal: 24,
+    marginBottom: 12,
+  },
+  fileChip: {
+    backgroundColor: "#e0e7ff",
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  fileChipText: { fontSize: 12, fontWeight: "600", color: "#667eea" },
+
+  dlBtn: { marginHorizontal: 20, marginVertical: 12, borderRadius: 14, overflow: "hidden" },
+  dlGrad: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    gap: 10,
+  },
+  dlText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+
+  pollHead: { marginBottom: 16 },
+  pollGrad: {
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    gap: 12,
+  },
+  pollQuestion: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
+    lineHeight: 24,
+  },
+
+  pollStatsRow: {
+    flexDirection: "row",
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: "#f8fafc",
+    borderRadius: 16,
+    padding: 16,
+    gap: 20,
+  },
+  statBox: { flex: 1, alignItems: "center", gap: 6 },
+  statDivSmall: { width: 1, backgroundColor: "#e2e8f0" },
+  statNum: { fontSize: 20, fontWeight: "700", color: "#1e293b" },
+  statLbl: {
+    fontSize: 11,
+    color: "#64748b",
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+
+  optionsBox: { paddingHorizontal: 20, gap: 10, marginBottom: 16 },
+  optCard: {
+    backgroundColor: "#f8fafc",
+    borderRadius: 14,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "#e2e8f0",
+  },
+  optSelected: { borderColor: "#667eea", backgroundColor: "#f0f4ff" },
+  optBar: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: "#dbeafe",
+    borderRadius: 12,
+  },
+  optBarTop: { backgroundColor: "#bfdbfe" },
+  optRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 14,
+  },
+  optLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
+  optDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#cbd5e1",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  optDotActive: { borderColor: "#667eea" },
+  optDotIn: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#667eea" },
+  optLabel: { flex: 1, fontSize: 14, fontWeight: "600", color: "#1e293b" },
+  optRight: { flexDirection: "row", alignItems: "center", gap: 4 },
+  optPercent: { fontSize: 15, fontWeight: "700", color: "#667eea" },
+  optVotes: { fontSize: 12, color: "#94a3b8", fontWeight: "500" },
+
+  modalActions: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+    marginTop: 8,
+  },
+  actionBtnShare: {
+    flex: 2,
+    borderRadius: 14,
+    overflow: "hidden",
+    shadowColor: "#667eea",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  actionBtnGrad: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    gap: 8,
+  },
+  actionTextWhite: { fontSize: 15, fontWeight: "700", color: "#fff" },
+  actionBtnDanger: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: "#fee2e2",
+  },
+  actionTextDanger: { fontSize: 15, fontWeight: "600", color: "#ef4444" },
+
+  // ===== EDIT PROFILE MODAL STYLES =====
+  editOverlay: { flex: 1, justifyContent: "flex-end" },
+  editBackdrop: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  editContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 20,
+    maxHeight: height * 0.92,
+  },
+  editHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  editTitle: { fontSize: 18, fontWeight: "800", color: "#0f172a" },
+  editClose: {
+    width: 36, height: 36,
+    borderRadius: 18,
+    backgroundColor: "#f1f5f9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  editAvatarWrap: {
+    alignSelf: "center",
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  editAvatar: { width: 116, height: 116, borderRadius: 58 },
+  editAvatarBadge: {
+    position: "absolute",
+    right: 6,
+    bottom: 6,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#667eea",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  editHint: {
+    textAlign: "center",
+    color: "#64748b",
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  readOnlyCard: {
+    backgroundColor: "#f8fafc",
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: 14,
+  },
+  readOnlyRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  readOnlyLabel: { fontSize: 12, color: "#64748b", fontWeight: "700" },
+  readOnlyValue: { fontSize: 15, color: "#0f172a", fontWeight: "800", marginTop: 2 },
+  readOnlyDivider: { height: 1, backgroundColor: "#e2e8f0", marginVertical: 12 },
+
+  inputLabel2: { fontSize: 12, color: "#64748b", fontWeight: "700", marginBottom: 8 },
+  bioInput2: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 14,
+    padding: 12,
+    minHeight: 86,
+    textAlignVertical: "top",
+    color: "#0f172a",
+    fontWeight: "600",
+  },
+  counter: { textAlign: "right", color: "#94a3b8", fontWeight: "700", marginTop: 6 },
+
+  editActions2: { flexDirection: "row", gap: 12, marginTop: 14 },
+  cancelBtn2: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  cancelText2: { color: "#0f172a", fontWeight: "800" },
+  saveBtn2: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    backgroundColor: "#667eea",
+  },
+  saveText2: { color: "#fff", fontWeight: "900" },
 });

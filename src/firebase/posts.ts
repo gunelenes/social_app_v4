@@ -9,7 +9,11 @@ import {
   doc,
   runTransaction,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
 import { db, auth, storage } from "./firebaseConfig";
 
 /* ================= TYPES ================= */
@@ -27,29 +31,40 @@ export type PollVote = {
   option_id: string;
 };
 
-/* ================= IMAGE ================= */
+/* =========================================================
+   IMAGE UPLOAD (EXPO / RN SAFE)
+========================================================= */
 
-export const uploadImage = async (file: File): Promise<string> => {
+export const uploadImage = async (file: any): Promise<string> => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
-  const filename = `${Date.now()}_${file.name}`;
+  // 🔴 Expo / RN -> Blob
+  const response = await fetch(file.uri);
+  const blob = await response.blob();
+
+  const filename = `${Date.now()}_${file.name ?? "image.jpg"}`;
   const storageRef = ref(storage, `images/${user.uid}/${filename}`);
 
-  await uploadBytes(storageRef, file);
+  await uploadBytes(storageRef, blob);
   return await getDownloadURL(storageRef);
 };
 
-/* ================= FILE ================= */
+/* =========================================================
+   FILE UPLOAD (EXPO / RN SAFE)
+========================================================= */
 
-export const uploadFile = async (file: File) => {
+export const uploadFile = async (file: any) => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
+
+  const response = await fetch(file.uri);
+  const blob = await response.blob();
 
   const filename = `${Date.now()}_${file.name}`;
   const storageRef = ref(storage, `files/${user.uid}/${filename}`);
 
-  await uploadBytes(storageRef, file);
+  await uploadBytes(storageRef, blob);
   const url = await getDownloadURL(storageRef);
 
   return {
@@ -59,13 +74,15 @@ export const uploadFile = async (file: File) => {
   };
 };
 
-/* ================= CREATE POST ================= */
+/* =========================================================
+   CREATE POST
+========================================================= */
 
 export const createPost = async (params: {
   type: PostType;
   text?: string;
-  imageFile?: File;
-  file?: File;
+  imageFile?: any;
+  file?: any;
   pollOptions?: string[];
 }) => {
   const user = auth.currentUser;
@@ -79,10 +96,12 @@ export const createPost = async (params: {
   let file_type = "";
   let poll_options: PollOption[] = [];
 
+  /* IMAGE */
   if (params.type === "image" && params.imageFile) {
     image_url = await uploadImage(params.imageFile);
   }
 
+  /* FILE */
   if (params.type === "file" && params.file) {
     const uploaded = await uploadFile(params.file);
     file_url = uploaded.file_url;
@@ -90,6 +109,7 @@ export const createPost = async (params: {
     file_type = uploaded.file_type;
   }
 
+  /* POLL */
   if (params.type === "poll" && params.pollOptions) {
     poll_options = params.pollOptions.map((opt, i) => ({
       id: String(i),
@@ -109,13 +129,15 @@ export const createPost = async (params: {
     file_type,
     poll_options,
     voted_user_ids: [],
-    comment_count: 0, // ✅ FEED İÇİN
+    comment_count: 0,
     created_date: serverTimestamp(),
     is_active: true,
   });
 };
 
-/* ================= POLL – SINGLE CHOICE ================= */
+/* =========================================================
+   POLL – SINGLE CHOICE
+========================================================= */
 
 export const votePollSingleChoice = async (
   postId: string,
@@ -134,7 +156,9 @@ export const votePollSingleChoice = async (
     const options: PollOption[] = data.poll_options ?? [];
     let votes: PollVote[] = data.voted_user_ids ?? [];
 
-    const existing = votes.find((v) => v.user_id === user.uid);
+    const existing = votes.find(
+      (v) => v.user_id === user.uid
+    );
 
     if (existing) {
       const oldIndex = Number(existing.option_id);
@@ -144,11 +168,16 @@ export const votePollSingleChoice = async (
           options[oldIndex].votes - 1
         );
       }
-      votes = votes.filter((v) => v.user_id !== user.uid);
+      votes = votes.filter(
+        (v) => v.user_id !== user.uid
+      );
     }
 
     options[optionIndex].votes += 1;
-    votes.push({ user_id: user.uid, option_id: String(optionIndex) });
+    votes.push({
+      user_id: user.uid,
+      option_id: String(optionIndex),
+    });
 
     tx.update(postRef, {
       poll_options: options,
@@ -157,7 +186,9 @@ export const votePollSingleChoice = async (
   });
 };
 
-/* ================= FEED ================= */
+/* =========================================================
+   HOME FEED (REAL-TIME)
+========================================================= */
 
 export const subscribeHomeFeedPosts = (
   callback: (posts: any[]) => void
@@ -170,13 +201,18 @@ export const subscribeHomeFeedPosts = (
 
   return onSnapshot(q, (snap) => {
     callback(
-      snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      }))
     );
   });
 };
+
 /* =========================================================
-   PROFILE FEED – REAL-TIME (MY POSTS)
+   PROFILE FEED (MY POSTS)
 ========================================================= */
+
 export const subscribeMyProfilePosts = (
   callback: (posts: any[]) => void
 ) => {

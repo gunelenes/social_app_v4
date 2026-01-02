@@ -166,24 +166,36 @@ export default function PostModalScreen({ navigation }: any) {
             style={styles.closeButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="close" size={28} color="#1e293b" />
+            <Ionicons name="close" size={26} color="#1e293b" />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Yeni Gönderi</Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>Yeni Gönderi</Text>
+            <View style={styles.userInfo}>
+              <View style={styles.userAvatarSmall}>
+                <LinearGradient
+                  colors={["#667eea", "#764ba2"]}
+                  style={styles.avatarGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={styles.avatarText}>
+                    {username.charAt(0).toUpperCase()}
+                  </Text>
+                </LinearGradient>
+              </View>
+              <Text style={styles.usernameSmall}>@{username}</Text>
+            </View>
+          </View>
 
           <TouchableOpacity
             onPress={handleShare}
             disabled={loading}
-            style={[
-              styles.shareButton,
-              loading && styles.shareButtonDisabled,
-            ]}
+            style={[styles.shareButton, loading && styles.shareButtonDisabled]}
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={
-                loading ? ["#cbd5e1", "#94a3b8"] : ["#667eea", "#764ba2"]
-              }
+              colors={loading ? ["#cbd5e1", "#94a3b8"] : ["#667eea", "#764ba2"]}
               style={styles.shareGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
@@ -191,62 +203,43 @@ export default function PostModalScreen({ navigation }: any) {
               {loading ? (
                 <View style={styles.loadingSpinner} />
               ) : (
-                <Text style={styles.shareText}>Paylaş</Text>
+                <Ionicons name="send" size={18} color="#fff" />
               )}
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
-        {/* User Info */}
-        <View style={styles.userSection}>
-          <LinearGradient
-            colors={["#667eea", "#764ba2"]}
-            style={styles.userAvatar}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+        {/* Tabs - Kompakt tasarım */}
+        <View style={styles.tabsWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabsContainer}
           >
-            <Text style={styles.userAvatarText}>
-              {username.charAt(0).toUpperCase()}
-            </Text>
-          </LinearGradient>
-          <Text style={styles.username}>@{username}</Text>
-        </View>
-
-        {/* Tabs */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabsContainer}
-        >
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.key}
-              style={[
-                styles.tab,
-                activeTab === tab.key && styles.tabActive,
-              ]}
-              onPress={() => setActiveTab(tab.key as TabType)}
-              activeOpacity={0.7}
-            >
-              {activeTab === tab.key ? (
-                <LinearGradient
-                  colors={["#667eea", "#764ba2"]}
-                  style={styles.tabGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
+            {tabs.map((tab) => (
+              <TouchableOpacity
+                key={tab.key}
+                style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+                onPress={() => setActiveTab(tab.key as TabType)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={tab.icon as any}
+                  size={20}
+                  color={activeTab === tab.key ? "#667eea" : "#64748b"}
+                />
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === tab.key && styles.tabTextActive,
+                  ]}
                 >
-                  <Ionicons name={tab.icon as any} size={18} color="#fff" />
-                  <Text style={styles.tabTextActive}>{tab.label}</Text>
-                </LinearGradient>
-              ) : (
-                <View style={styles.tabInactive}>
-                  <Ionicons name={tab.icon as any} size={18} color="#64748b" />
-                  <Text style={styles.tabText}>{tab.label}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
         {/* Content */}
         <ScrollView
@@ -265,6 +258,7 @@ export default function PostModalScreen({ navigation }: any) {
                 style={styles.textInput}
                 placeholderTextColor="#94a3b8"
                 maxLength={500}
+                autoFocus
               />
               <Text style={styles.charCount}>{text.length}/500</Text>
             </View>
@@ -278,36 +272,26 @@ export default function PostModalScreen({ navigation }: any) {
                   onPress={pickImage}
                   activeOpacity={0.7}
                 >
-                  <View style={styles.uploadIconContainer}>
-                    <LinearGradient
-                      colors={["#e0e7ff", "#dbeafe"]}
-                      style={styles.uploadIconGradient}
-                    >
-                      <Ionicons name="image-outline" size={48} color="#667eea" />
-                    </LinearGradient>
+                  <View style={styles.uploadIcon}>
+                    <Ionicons name="image-outline" size={40} color="#667eea" />
                   </View>
                   <Text style={styles.uploadTitle}>Fotoğraf Seç</Text>
                   <Text style={styles.uploadSubtitle}>
-                    Galerinizden bir fotoğraf seçin
+                    Galerinizden bir fotoğraf ekleyin
                   </Text>
                 </TouchableOpacity>
               ) : (
-                <>
+                <View style={styles.imageContent}>
                   <View style={styles.imagePreviewContainer}>
                     <Image source={{ uri: imageUri }} style={styles.imagePreview} />
                     <TouchableOpacity
-                      style={styles.removeImageButton}
+                      style={styles.removeButton}
                       onPress={() => {
                         setImageUri(null);
                         setImageFile(null);
                       }}
                     >
-                      <LinearGradient
-                        colors={["#ef4444", "#dc2626"]}
-                        style={styles.removeImageGradient}
-                      >
-                        <Ionicons name="close" size={20} color="#fff" />
-                      </LinearGradient>
+                      <Ionicons name="close-circle" size={28} color="#ef4444" />
                     </TouchableOpacity>
                   </View>
                   <TextInput
@@ -320,110 +304,104 @@ export default function PostModalScreen({ navigation }: any) {
                     maxLength={500}
                   />
                   <Text style={styles.charCount}>{text.length}/500</Text>
-                </>
+                </View>
               )}
             </View>
           )}
 
           {activeTab === "file" && (
             <View style={styles.fileContainer}>
-              <TouchableOpacity
-                style={styles.uploadBox}
-                onPress={pickFile}
-                activeOpacity={0.7}
-              >
-                <View style={styles.uploadIconContainer}>
-                  <LinearGradient
-                    colors={["#e0e7ff", "#dbeafe"]}
-                    style={styles.uploadIconGradient}
-                  >
-                    <Ionicons name="attach-outline" size={48} color="#667eea" />
-                  </LinearGradient>
-                </View>
-                <Text style={styles.uploadTitle}>Dosya Seç</Text>
-                <Text style={styles.uploadSubtitle}>
-                  PDF, DOC veya diğer dosyalar
-                </Text>
-              </TouchableOpacity>
-
-              {file && (
-                <View style={styles.filePreview}>
-                  <View style={styles.fileIconContainer}>
-                    <Ionicons name="document" size={24} color="#667eea" />
+              {!file ? (
+                <TouchableOpacity
+                  style={styles.uploadBox}
+                  onPress={pickFile}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.uploadIcon}>
+                    <Ionicons name="document-attach-outline" size={40} color="#667eea" />
                   </View>
-                  <View style={styles.fileInfo}>
-                    <Text style={styles.fileName} numberOfLines={1}>
-                      {file.name}
-                    </Text>
-                    <Text style={styles.fileType}>{file.type}</Text>
+                  <Text style={styles.uploadTitle}>Dosya Seç</Text>
+                  <Text style={styles.uploadSubtitle}>
+                    PDF, DOC veya diğer dosyalar
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.fileContent}>
+                  <View style={styles.filePreview}>
+                    <View style={styles.fileIcon}>
+                      <Ionicons name="document" size={24} color="#667eea" />
+                    </View>
+                    <View style={styles.fileInfo}>
+                      <Text style={styles.fileName} numberOfLines={1}>
+                        {file.name}
+                      </Text>
+                      <Text style={styles.fileType}>{file.type}</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => setFile(null)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Ionicons name="close-circle" size={24} color="#ef4444" />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => setFile(null)}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <Ionicons name="close-circle" size={24} color="#ef4444" />
-                  </TouchableOpacity>
+                  <TextInput
+                    placeholder="Açıklama ekle..."
+                    value={text}
+                    onChangeText={setText}
+                    multiline
+                    style={styles.caption}
+                    placeholderTextColor="#94a3b8"
+                    maxLength={500}
+                  />
+                  <Text style={styles.charCount}>{text.length}/500</Text>
                 </View>
               )}
-
-              <TextInput
-                placeholder="Açıklama ekle (opsiyonel)"
-                value={text}
-                onChangeText={setText}
-                multiline
-                style={styles.caption}
-                placeholderTextColor="#94a3b8"
-                maxLength={500}
-              />
-              <Text style={styles.charCount}>{text.length}/500</Text>
             </View>
           )}
 
           {activeTab === "poll" && (
             <View style={styles.pollContainer}>
-              <View style={styles.pollQuestionContainer}>
-                <Text style={styles.pollLabel}>Anket Sorusu</Text>
-                <TextInput
-                  placeholder="Sorunuzu yazın..."
-                  value={text}
-                  onChangeText={setText}
-                  multiline
-                  style={styles.pollQuestion}
-                  placeholderTextColor="#94a3b8"
-                  maxLength={200}
-                />
-                <Text style={styles.charCount}>{text.length}/200</Text>
-              </View>
+              <TextInput
+                placeholder="Anket sorunuzu yazın..."
+                value={text}
+                onChangeText={setText}
+                multiline
+                style={styles.pollQuestion}
+                placeholderTextColor="#94a3b8"
+                maxLength={200}
+                autoFocus
+              />
+              <Text style={styles.charCount}>{text.length}/200</Text>
 
-              <Text style={styles.pollLabel}>Seçenekler</Text>
-
-              {pollOptions.map((opt, i) => (
-                <View key={i} style={styles.pollOptionContainer}>
-                  <View style={styles.pollOptionNumber}>
-                    <Text style={styles.pollOptionNumberText}>{i + 1}</Text>
+              <View style={styles.pollOptionsContainer}>
+                {pollOptions.map((opt, i) => (
+                  <View key={i} style={styles.pollOptionRow}>
+                    <View style={styles.pollOptionNumber}>
+                      <Text style={styles.pollOptionNumberText}>{i + 1}</Text>
+                    </View>
+                    <TextInput
+                      placeholder={`Seçenek ${i + 1}`}
+                      value={opt}
+                      onChangeText={(v) => {
+                        const copy = [...pollOptions];
+                        copy[i] = v;
+                        setPollOptions(copy);
+                      }}
+                      style={styles.pollOptionInput}
+                      placeholderTextColor="#94a3b8"
+                      maxLength={100}
+                    />
+                    {pollOptions.length > 2 && (
+                      <TouchableOpacity
+                        onPress={() => removePollOption(i)}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Ionicons name="close-circle" size={22} color="#ef4444" />
+                      </TouchableOpacity>
+                    )}
                   </View>
-                  <TextInput
-                    placeholder={`Seçenek ${i + 1}`}
-                    value={opt}
-                    onChangeText={(v) => {
-                      const copy = [...pollOptions];
-                      copy[i] = v;
-                      setPollOptions(copy);
-                    }}
-                    style={styles.pollOptionInput}
-                    placeholderTextColor="#94a3b8"
-                    maxLength={100}
-                  />
-                  {pollOptions.length > 2 && (
-                    <TouchableOpacity
-                      onPress={() => removePollOption(i)}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                      <Ionicons name="close-circle" size={24} color="#ef4444" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              ))}
+                ))}
+              </View>
 
               {pollOptions.length < 5 && (
                 <TouchableOpacity
@@ -431,17 +409,10 @@ export default function PostModalScreen({ navigation }: any) {
                   onPress={addPollOption}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="add-circle" size={20} color="#667eea" />
+                  <Ionicons name="add-circle-outline" size={20} color="#667eea" />
                   <Text style={styles.addOptionText}>Seçenek Ekle</Text>
                 </TouchableOpacity>
               )}
-
-              <View style={styles.pollInfo}>
-                <Ionicons name="information-circle" size={18} color="#667eea" />
-                <Text style={styles.pollInfoText}>
-                  En az 2, en fazla 5 seçenek ekleyebilirsiniz
-                </Text>
-              </View>
             </View>
           )}
         </ScrollView>
@@ -453,7 +424,7 @@ export default function PostModalScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f7fa",
+    backgroundColor: "#ffffff",
   },
 
   keyboardView: {
@@ -468,30 +439,68 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    borderBottomColor: "#f1f5f9",
   },
 
   closeButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
 
+  headerCenter: {
+    flex: 1,
+    alignItems: "center",
+    gap: 4,
+  },
+
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
     color: "#1e293b",
   },
 
+  userInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+
+  userAvatarSmall: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+
+  avatarGradient: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  avatarText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+
+  usernameSmall: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748b",
+  },
+
   shareButton: {
-    borderRadius: 20,
+    borderRadius: 18,
     overflow: "hidden",
     shadowColor: "#667eea",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
 
   shareButtonDisabled: {
@@ -500,104 +509,59 @@ const styles = StyleSheet.create({
   },
 
   shareGradient: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    width: 36,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
-    minWidth: 80,
-  },
-
-  shareText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "700",
   },
 
   loadingSpinner: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     borderWidth: 2,
     borderColor: "rgba(255, 255, 255, 0.3)",
     borderTopColor: "#fff",
   },
 
-  userSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  tabsWrapper: {
     backgroundColor: "#fff",
-    gap: 12,
-  },
-
-  userAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  userAvatarText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-
-  username: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1e293b",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
   },
 
   tabsContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    gap: 10,
-    backgroundColor: "#fff",
+    paddingVertical: 12,
+    gap: 8,
   },
 
   tab: {
-    borderRadius: 12,
-    overflow: "hidden",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 6,
+    backgroundColor: "#f8fafc",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
 
   tabActive: {
-    shadowColor: "#667eea",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  tabGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-  },
-
-  tabInactive: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-    backgroundColor: "#f8fafc",
-  },
-
-  tabTextActive: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
+    backgroundColor: "#eff6ff",
+    borderColor: "#bfdbfe",
   },
 
   tabText: {
     color: "#64748b",
     fontSize: 14,
     fontWeight: "600",
+  },
+
+  tabTextActive: {
+    color: "#667eea",
+    fontWeight: "700",
   },
 
   scrollView: {
@@ -613,12 +577,12 @@ const styles = StyleSheet.create({
   },
 
   textInput: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
     padding: 16,
     fontSize: 16,
     color: "#1e293b",
-    minHeight: 200,
+    minHeight: 180,
     textAlignVertical: "top",
     borderWidth: 1,
     borderColor: "#e2e8f0",
@@ -627,7 +591,7 @@ const styles = StyleSheet.create({
   charCount: {
     fontSize: 12,
     color: "#94a3b8",
-    fontWeight: "600",
+    fontWeight: "500",
     textAlign: "right",
   },
 
@@ -636,76 +600,70 @@ const styles = StyleSheet.create({
   },
 
   uploadBox: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
+    backgroundColor: "#f8fafc",
+    borderRadius: 16,
     borderWidth: 2,
     borderStyle: "dashed",
     borderColor: "#cbd5e1",
-    padding: 40,
+    padding: 32,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 240,
+    minHeight: 200,
   },
 
-  uploadIconContainer: {
-    marginBottom: 16,
-  },
-
-  uploadIconGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  uploadIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#eff6ff",
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 12,
   },
 
   uploadTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
     color: "#1e293b",
     marginBottom: 4,
   },
 
   uploadSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#64748b",
+  },
+
+  imageContent: {
+    gap: 12,
   },
 
   imagePreviewContainer: {
     position: "relative",
-    borderRadius: 20,
+    borderRadius: 16,
     overflow: "hidden",
   },
 
   imagePreview: {
     width: "100%",
-    height: 300,
-    borderRadius: 20,
+    height: 280,
+    borderRadius: 16,
   },
 
-  removeImageButton: {
+  removeButton: {
     position: "absolute",
-    top: 12,
-    right: 12,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-
-  removeImageGradient: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    borderRadius: 14,
   },
 
   caption: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 1,
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
+    padding: 14,
     fontSize: 15,
     color: "#1e293b",
-    minHeight: 100,
+    minHeight: 80,
     textAlignVertical: "top",
     borderWidth: 1,
     borderColor: "#e2e8f0",
@@ -715,22 +673,26 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
+  fileContent: {
+    gap: 12,
+  },
+
   filePreview: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 16,
+    backgroundColor: "#f8fafc",
+    padding: 14,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#e2e8f0",
     gap: 12,
   },
 
-  fileIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: "#e0e7ff",
+  fileIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: "#eff6ff",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -740,35 +702,24 @@ const styles = StyleSheet.create({
   },
 
   fileName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "600",
     color: "#1e293b",
-    marginBottom: 4,
+    marginBottom: 2,
   },
 
   fileType: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#64748b",
   },
 
   pollContainer: {
-    gap: 16,
-  },
-
-  pollQuestionContainer: {
-    gap: 8,
-  },
-
-  pollLabel: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1e293b",
-    marginBottom: 8,
+    gap: 12,
   },
 
   pollQuestion: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
     padding: 16,
     fontSize: 16,
     color: "#1e293b",
@@ -778,34 +729,37 @@ const styles = StyleSheet.create({
     borderColor: "#e2e8f0",
   },
 
-  pollOptionContainer: {
+  pollOptionsContainer: {
+    gap: 10,
+  },
+
+  pollOptionRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    marginBottom: 12,
+    gap: 10,
   },
 
   pollOptionNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#e0e7ff",
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#eff6ff",
     alignItems: "center",
     justifyContent: "center",
   },
 
   pollOptionNumberText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
     color: "#667eea",
   },
 
   pollOptionInput: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 15,
+    backgroundColor: "#f8fafc",
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
     color: "#1e293b",
     borderWidth: 1,
     borderColor: "#e2e8f0",
@@ -815,35 +769,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 14,
-    backgroundColor: "#f0f4ff",
-    borderRadius: 12,
-    gap: 8,
+    padding: 12,
+    backgroundColor: "#f8fafc",
+    borderRadius: 10,
+    gap: 6,
     borderWidth: 1,
-    borderColor: "#dbeafe",
+    borderColor: "#e2e8f0",
   },
 
   addOptionText: {
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "600",
     color: "#667eea",
-  },
-
-  pollInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#eff6ff",
-    padding: 12,
-    borderRadius: 12,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "#dbeafe",
-  },
-
-  pollInfoText: {
-    flex: 1,
-    fontSize: 13,
-    color: "#1e40af",
-    lineHeight: 18,
   },
 });
