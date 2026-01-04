@@ -9,6 +9,8 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -49,12 +51,16 @@ export default function CommentsModal({ route, navigation }: any) {
   const sendComment = async () => {
     if (!text.trim()) return;
 
+    const commentText = text.trim();
+    setText(""); // Önce temizle
     setIsSending(true);
+    
     try {
-      await createComment(postId, text.trim());
-      setText("");
+      await createComment(postId, commentText);
+      Keyboard.dismiss();
     } catch (error) {
-      Alert.alert("Hata", "Yorum gönderilemedi");
+      //setText(commentText); // Hata olursa geri yükle
+      //Alert.alert("Hata", "Yorum gönderilemedi");
     } finally {
       setIsSending(false);
     }
@@ -105,64 +111,69 @@ export default function CommentsModal({ route, navigation }: any) {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        {/* Comments List */}
-        <FlatList
-          data={comments}
-          keyExtractor={(i) => i.id}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={<EmptyState />}
-          renderItem={({ item }) => {
-            const isOwner = item.user_id === auth.currentUser?.uid;
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.flex}>
+            {/* Comments List */}
+            <FlatList
+              data={comments}
+              keyExtractor={(i) => i.id}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={<EmptyState />}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => {
+                const isOwner = item.user_id === auth.currentUser?.uid;
 
-            return (
-              <View style={styles.commentCard}>
-                <View style={styles.commentHeader}>
-                  <View style={styles.avatarContainer}>
-                    <LinearGradient
-                      colors={["#667eea", "#764ba2"]}
-                      style={styles.avatar}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    >
-                      <Text style={styles.avatarText}>
-                        {item.username?.charAt(0).toUpperCase()}
-                      </Text>
-                    </LinearGradient>
-                  </View>
+                return (
+                  <View style={styles.commentCard}>
+                    <View style={styles.commentHeader}>
+                      <View style={styles.avatarContainer}>
+                        <LinearGradient
+                          colors={["#667eea", "#764ba2"]}
+                          style={styles.avatar}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          <Text style={styles.avatarText}>
+                            {item.username?.charAt(0).toUpperCase()}
+                          </Text>
+                        </LinearGradient>
+                      </View>
 
-                  <View style={styles.commentInfo}>
-                    <View style={styles.commentTop}>
-                      <Text style={styles.username}>@{item.username}</Text>
-                      {isOwner && (
-                        <View style={styles.ownerBadge}>
-                          <Text style={styles.ownerBadgeText}>Sen</Text>
+                      <View style={styles.commentInfo}>
+                        <View style={styles.commentTop}>
+                          <Text style={styles.username}>@{item.username}</Text>
+                          {isOwner && (
+                            <View style={styles.ownerBadge}>
+                              <Text style={styles.ownerBadgeText}>Sen</Text>
+                            </View>
+                          )}
                         </View>
+                        <Text style={styles.timestamp}>
+                          {formatDate(item.created_date)}
+                        </Text>
+                      </View>
+
+                      {isOwner && (
+                        <TouchableOpacity
+                          onPress={() => handleDelete(item.id)}
+                          style={styles.deleteButton}
+                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                          <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                        </TouchableOpacity>
                       )}
                     </View>
-                    <Text style={styles.timestamp}>
-                      {formatDate(item.created_date)}
-                    </Text>
+
+                    <Text style={styles.commentText}>{item.text}</Text>
                   </View>
-
-                  {isOwner && (
-                    <TouchableOpacity
-                      onPress={() => handleDelete(item.id)}
-                      style={styles.deleteButton}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                      <Ionicons name="trash-outline" size={18} color="#ef4444" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-
-                <Text style={styles.commentText}>{item.text}</Text>
-              </View>
-            );
-          }}
-        />
+                );
+              }}
+            />
+          </View>
+        </TouchableWithoutFeedback>
 
         {/* Input Section */}
         <View style={styles.inputContainer}>
@@ -176,6 +187,7 @@ export default function CommentsModal({ route, navigation }: any) {
                 multiline
                 maxLength={500}
                 placeholderTextColor="#94a3b8"
+                blurOnSubmit={false}
               />
             </View>
 
@@ -223,6 +235,10 @@ const styles = StyleSheet.create({
   },
 
   keyboardView: {
+    flex: 1,
+  },
+
+  flex: {
     flex: 1,
   },
 

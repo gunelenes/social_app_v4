@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth } from "../firebase/firebaseConfig";
@@ -41,6 +43,7 @@ export default function ChatScreen({ route, navigation }: any) {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: otherUsername ?? "Sohbet",
+      headerBackTitle: "Mesajlar",
       headerStyle: {
         backgroundColor: "#fff",
       },
@@ -131,6 +134,7 @@ export default function ChatScreen({ route, navigation }: any) {
 
     const toSend = text;
     setText("");
+    Keyboard.dismiss();
 
     try {
       await sendTextMessage({
@@ -183,65 +187,70 @@ export default function ChatScreen({ route, navigation }: any) {
     <SafeAreaView style={styles.container} edges={["bottom"]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          inverted
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.messagesList}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={<EmptyState />}
-          renderItem={({ item }) => {
-            const mine = item.senderId === currentUser?.uid;
-            return (
-              <View style={styles.messageContainer}>
-                {mine ? (
-                  <View style={styles.myMessageWrapper}>
-                    <View style={styles.myBubble}>
-                      <LinearGradient
-                        colors={["#667eea", "#764ba2"]}
-                        style={styles.myBubbleGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                      >
-                        <Text style={styles.myMessageText}>{item.text}</Text>
-                      </LinearGradient>
-                    </View>
-                    <Text style={styles.myMessageTime}>
-                      {formatTime(item.createdAt)}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={styles.theirMessageWrapper}>
-                    <View style={styles.theirAvatar}>
-                      <LinearGradient
-                        colors={["#667eea", "#764ba2"]}
-                        style={styles.avatarGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                      >
-                        <Text style={styles.avatarText}>
-                          {otherUsername?.charAt(0).toUpperCase()}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.flex}>
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              inverted
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.messagesList}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              ListEmptyComponent={<EmptyState />}
+              renderItem={({ item }) => {
+                const mine = item.senderId === currentUser?.uid;
+                return (
+                  <View style={styles.messageContainer}>
+                    {mine ? (
+                      <View style={styles.myMessageWrapper}>
+                        <View style={styles.myBubble}>
+                          <LinearGradient
+                            colors={["#667eea", "#764ba2"]}
+                            style={styles.myBubbleGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                          >
+                            <Text style={styles.myMessageText}>{item.text}</Text>
+                          </LinearGradient>
+                        </View>
+                        <Text style={styles.myMessageTime}>
+                          {formatTime(item.createdAt)}
                         </Text>
-                      </LinearGradient>
-                    </View>
-                    <View style={styles.theirBubbleContainer}>
-                      <View style={styles.theirBubble}>
-                        <Text style={styles.theirMessageText}>{item.text}</Text>
                       </View>
-                      <Text style={styles.theirMessageTime}>
-                        {formatTime(item.createdAt)}
-                      </Text>
-                    </View>
+                    ) : (
+                      <View style={styles.theirMessageWrapper}>
+                        <View style={styles.theirAvatar}>
+                          <LinearGradient
+                            colors={["#667eea", "#764ba2"]}
+                            style={styles.avatarGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                          >
+                            <Text style={styles.avatarText}>
+                              {otherUsername?.charAt(0).toUpperCase()}
+                            </Text>
+                          </LinearGradient>
+                        </View>
+                        <View style={styles.theirBubbleContainer}>
+                          <View style={styles.theirBubble}>
+                            <Text style={styles.theirMessageText}>{item.text}</Text>
+                          </View>
+                          <Text style={styles.theirMessageTime}>
+                            {formatTime(item.createdAt)}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-            );
-          }}
-        />
+                );
+              }}
+            />
+          </View>
+        </TouchableWithoutFeedback>
 
         {/* Input Section */}
         <View style={styles.inputContainer}>
@@ -254,6 +263,7 @@ export default function ChatScreen({ route, navigation }: any) {
               style={styles.input}
               multiline
               maxLength={1000}
+              blurOnSubmit={false}
             />
             <TouchableOpacity
               onPress={onSend}
@@ -291,6 +301,10 @@ const styles = StyleSheet.create({
   },
 
   keyboardView: {
+    flex: 1,
+  },
+
+  flex: {
     flex: 1,
   },
 

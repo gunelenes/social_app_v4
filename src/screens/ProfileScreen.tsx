@@ -16,7 +16,7 @@ import {
   ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
-  Pressable,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -46,14 +46,14 @@ export default function ProfileScreen({ navigation }: any) {
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // ✅ Profile user data (Firestore)
+  // Profile user data (Firestore)
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileUsername, setProfileUsername] = useState("");
   const [profileFaculty, setProfileFaculty] = useState("Dokuz Eylül Üniversitesi");
   const [profileBio, setProfileBio] = useState("DEÜ Öğrencisi 🎓");
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
 
-  // ✅ Edit modal
+  // Edit modal
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editBio, setEditBio] = useState("");
   const [editPhotoUrl, setEditPhotoUrl] = useState<string | null>(null);
@@ -66,13 +66,13 @@ export default function ProfileScreen({ navigation }: any) {
     });
   }, []);
 
-  // ✅ Subscribe my posts
+  // Subscribe my posts
   useEffect(() => {
     const unsubscribe = subscribeMyProfilePosts(setPosts);
     return unsubscribe;
   }, []);
 
-  // ✅ Load my user profile (Firestore: users/{uid})
+  // Load my user profile (Firestore: users/{uid})
   useEffect(() => {
     const loadProfile = async () => {
       const user = auth.currentUser;
@@ -88,7 +88,6 @@ export default function ProfileScreen({ navigation }: any) {
         const snap = await getDoc(userRef);
 
         if (!snap.exists()) {
-          // create minimal user if missing (username & faculty set once)
           await setDoc(userRef, {
             uid: user.uid,
             email: user.email,
@@ -168,14 +167,12 @@ export default function ProfileScreen({ navigation }: any) {
     await votePollSingleChoice(selectedPost.id, optionIndex);
   };
 
-  // ✅ Open edit modal, prefill fields
   const openEditProfile = () => {
     setEditBio(profileBio);
     setEditPhotoUrl(profilePhotoUrl);
     setEditModalVisible(true);
   };
 
-  // ✅ Pick image + upload to Storage + set editPhotoUrl
   const pickAndUploadAvatar = async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -183,7 +180,6 @@ export default function ProfileScreen({ navigation }: any) {
     try {
       setPickingPhoto(true);
 
-      // permission
       if (Platform.OS !== "web") {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
@@ -204,7 +200,6 @@ export default function ProfileScreen({ navigation }: any) {
       const asset = result.assets?.[0];
       if (!asset?.uri) return;
 
-      // uri -> blob
       const resp = await fetch(asset.uri);
       const blob = await resp.blob();
 
@@ -227,7 +222,6 @@ export default function ProfileScreen({ navigation }: any) {
     }
   };
 
-  // ✅ Save only bio + photo_url (username & faculty immutable)
   const saveProfile = async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -237,21 +231,19 @@ export default function ProfileScreen({ navigation }: any) {
 
       const userRef = doc(db, "users", user.uid);
 
-      // update only allowed fields
       await updateDoc(userRef, {
         bio: (editBio ?? "").trim(),
         photo_url: editPhotoUrl ?? "",
       });
 
-      // update UI state
       setProfileBio((editBio ?? "").trim() || "DEÜ Öğrencisi 🎓");
       setProfilePhotoUrl(editPhotoUrl ?? null);
 
       setEditModalVisible(false);
+      Keyboard.dismiss();
     } catch (e: any) {
       console.log("Save profile error:", e?.message);
 
-      // if doc doesn't exist for some reason, create merge
       try {
         const fallbackUsername = user.email?.split("@")[0] ?? "";
         await setDoc(
@@ -261,8 +253,8 @@ export default function ProfileScreen({ navigation }: any) {
             email: user.email,
             emailVerified: user.emailVerified,
             createdAt: serverTimestamp(),
-            username: profileUsername || fallbackUsername, // immutable
-            faculty: profileFaculty || "Dokuz Eylül Üniversitesi", // immutable
+            username: profileUsername || fallbackUsername,
+            faculty: profileFaculty || "Dokuz Eylül Üniversitesi",
             bio: (editBio ?? "").trim(),
             photo_url: editPhotoUrl ?? "",
           },
@@ -271,6 +263,7 @@ export default function ProfileScreen({ navigation }: any) {
         setProfileBio((editBio ?? "").trim() || "DEÜ Öğrencisi 🎓");
         setProfilePhotoUrl(editPhotoUrl ?? null);
         setEditModalVisible(false);
+        Keyboard.dismiss();
       } catch {
         Alert.alert("Hata", "Profil kaydedilemedi. Tekrar dene.");
       }
@@ -279,8 +272,7 @@ export default function ProfileScreen({ navigation }: any) {
     }
   };
 
-  const avatarUri =
-    profilePhotoUrl ?? "https://i.pravatar.cc/150?img=3";
+  const avatarUri = profilePhotoUrl ?? "https://i.pravatar.cc/150?img=3";
 
   return (
     <View style={styles.container}>
@@ -322,7 +314,6 @@ export default function ProfileScreen({ navigation }: any) {
               ) : (
                 <>
                   <Text style={styles.username}>@{profileUsername}</Text>
-                  {/* ✅ Bio değişebilir; Fakülte sabit gösterilsin */}
                   <Text style={styles.userBio}>
                     {(profileBio && profileBio.trim().length > 0)
                       ? profileBio
@@ -448,7 +439,7 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* ================== POST DETAIL MODAL ================== */}
+      {/* POST DETAIL MODAL */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -514,7 +505,7 @@ export default function ProfileScreen({ navigation }: any) {
         </View>
       </Modal>
 
-      {/* ================== EDIT PROFILE MODAL ================== */}
+      {/* EDIT PROFILE MODAL - KLAVYE SORUNLARI DÜZELTİLDİ */}
       <Modal
         animationType="slide"
         transparent
@@ -525,130 +516,127 @@ export default function ProfileScreen({ navigation }: any) {
         }}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          {/* 👇 Boş alana dokununca klavye kapanır */}
-          <Pressable
-            style={styles.editOverlay}
-            onPress={Keyboard.dismiss}
-          >
-            {/* 👇 İçeriğe basınca klavye KAPANMAZ */}
-            <Pressable
-              style={styles.editContent}
-              onPress={() => {}}
-            >
-              {/* ---- MODAL İÇERİĞİN ---- */}
-            </Pressable>
-          </Pressable>
-        </KeyboardAvoidingView>
-        <View style={styles.editOverlay}>
-          <TouchableOpacity
-            style={styles.editBackdrop}
-            activeOpacity={1}
-            onPress={() => setEditModalVisible(false)}
-          />
-          <View style={styles.editContent}>
-            <View style={styles.editHeader}>
-              <Text style={styles.editTitle}>Profili Düzenle</Text>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.editOverlay}>
               <TouchableOpacity
-                style={styles.editClose}
-                onPress={() => setEditModalVisible(false)}
-              >
-                <Ionicons name="close" size={22} color="#64748b" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Avatar */}
-            <TouchableOpacity
-              style={styles.editAvatarWrap}
-              activeOpacity={0.8}
-              onPress={pickAndUploadAvatar}
-              disabled={pickingPhoto}
-            >
-              <Image
-                source={{
-                  uri: editPhotoUrl ?? "https://i.pravatar.cc/150?img=3",
+                style={styles.editBackdrop}
+                activeOpacity={1}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setEditModalVisible(false);
                 }}
-                style={styles.editAvatar}
               />
-              <View style={styles.editAvatarBadge}>
-                {pickingPhoto ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Ionicons name="camera" size={16} color="#fff" />
-                )}
-              </View>
-            </TouchableOpacity>
+              <TouchableWithoutFeedback>
+                <View style={styles.editContent}>
+                  <View style={styles.editHeader}>
+                    <Text style={styles.editTitle}>Profili Düzenle</Text>
+                    <TouchableOpacity
+                      style={styles.editClose}
+                      onPress={() => setEditModalVisible(false)}
+                    >
+                      <Ionicons name="close" size={22} color="#64748b" />
+                    </TouchableOpacity>
+                  </View>
 
-            <Text style={styles.editHint}>Fotoğrafı değiştirmek için dokun</Text>
+                  {/* Avatar */}
+                  <TouchableOpacity
+                    style={styles.editAvatarWrap}
+                    activeOpacity={0.8}
+                    onPress={pickAndUploadAvatar}
+                    disabled={pickingPhoto}
+                  >
+                    <Image
+                      source={{
+                        uri: editPhotoUrl ?? "https://i.pravatar.cc/150?img=3",
+                      }}
+                      style={styles.editAvatar}
+                    />
+                    <View style={styles.editAvatarBadge}>
+                      {pickingPhoto ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Ionicons name="camera" size={16} color="#fff" />
+                      )}
+                    </View>
+                  </TouchableOpacity>
 
-            {/* Immutable fields */}
-            <View style={styles.readOnlyCard}>
-              <View style={styles.readOnlyRow}>
-                <Ionicons name="person-circle-outline" size={20} color="#667eea" />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.readOnlyLabel}>Kullanıcı Adı (Sabit)</Text>
-                  <Text style={styles.readOnlyValue}>@{profileUsername}</Text>
+                  <Text style={styles.editHint}>Fotoğrafı değiştirmek için dokun</Text>
+
+                  {/* Immutable fields */}
+                  <View style={styles.readOnlyCard}>
+                    <View style={styles.readOnlyRow}>
+                      <Ionicons name="person-circle-outline" size={20} color="#667eea" />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.readOnlyLabel}>Kullanıcı Adı (Sabit)</Text>
+                        <Text style={styles.readOnlyValue}>@{profileUsername}</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.readOnlyDivider} />
+
+                    <View style={styles.readOnlyRow}>
+                      <Ionicons name="school-outline" size={20} color="#667eea" />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.readOnlyLabel}>Fakülte (Sabit)</Text>
+                        <Text style={styles.readOnlyValue}>{profileFaculty}</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Bio editable */}
+                  <Text style={styles.inputLabel2}>Kısa Açıklama</Text>
+                  <TextInput
+                    value={editBio}
+                    onChangeText={setEditBio}
+                    placeholder="Kendin hakkında kısa bir şey yaz…"
+                    placeholderTextColor="#94a3b8"
+                    maxLength={120}
+                    multiline
+                    blurOnSubmit={false}
+                    style={styles.bioInput2}
+                  />
+                  <Text style={styles.counter}>{(editBio ?? "").length}/120</Text>
+
+                  <View style={styles.editActions2}>
+                    <TouchableOpacity
+                      style={styles.cancelBtn2}
+                      onPress={() => setEditModalVisible(false)}
+                      disabled={savingProfile}
+                    >
+                      <Text style={styles.cancelText2}>İptal</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.saveBtn2, savingProfile && { opacity: 0.7 }]}
+                      onPress={saveProfile}
+                      disabled={savingProfile}
+                      activeOpacity={0.85}
+                    >
+                      {savingProfile ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <>
+                          <Ionicons name="checkmark" size={18} color="#fff" />
+                          <Text style={styles.saveText2}>Kaydet</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-
-              <View style={styles.readOnlyDivider} />
-
-              <View style={styles.readOnlyRow}>
-                <Ionicons name="school-outline" size={20} color="#667eea" />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.readOnlyLabel}>Fakülte (Sabit)</Text>
-                  <Text style={styles.readOnlyValue}>{profileFaculty}</Text>
-                </View>
-              </View>
+              </TouchableWithoutFeedback>
             </View>
-
-            {/* Bio editable */}
-            <Text style={styles.inputLabel2}>Kısa Açıklama</Text>
-            <TextInput
-              value={editBio}
-              onChangeText={setEditBio}
-              placeholder="Kendin hakkında kısa bir şey yaz…"
-              placeholderTextColor="#94a3b8"
-              maxLength={120}
-              multiline
-              style={styles.bioInput2}
-            />
-            <Text style={styles.counter}>{(editBio ?? "").length}/120</Text>
-
-            <View style={styles.editActions2}>
-              <TouchableOpacity
-                style={styles.cancelBtn2}
-                onPress={() => setEditModalVisible(false)}
-                disabled={savingProfile}
-              >
-                <Text style={styles.cancelText2}>İptal</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.saveBtn2, savingProfile && { opacity: 0.7 }]}
-                onPress={saveProfile}
-                disabled={savingProfile}
-                activeOpacity={0.85}
-              >
-                {savingProfile ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <Ionicons name="checkmark" size={18} color="#fff" />
-                    <Text style={styles.saveText2}>Kaydet</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
 }
 
+// Grid Item ve diğer componentler aynı kalıyor...
 const GridItem = ({ post, onPress }: any) => (
   <TouchableOpacity
     style={styles.gridItem}

@@ -25,6 +25,7 @@ export default function UserSearchScreen({ navigation }: any) {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: "Kullanıcı Ara",
+      headerBackTitle: "Mesajlar",
       headerStyle: {
         backgroundColor: "#fff",
       },

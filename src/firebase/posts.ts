@@ -8,6 +8,7 @@ import {
   onSnapshot,
   doc,
   runTransaction,
+  getDoc, // Kullanıcı verisini çekmek için eklendi
 } from "firebase/firestore";
 import {
   ref,
@@ -39,7 +40,6 @@ export const uploadImage = async (file: any): Promise<string> => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
-  // 🔴 Expo / RN -> Blob
   const response = await fetch(file.uri);
   const blob = await response.blob();
 
@@ -75,7 +75,7 @@ export const uploadFile = async (file: any) => {
 };
 
 /* =========================================================
-   CREATE POST
+   CREATE POST (UPDATED WITH PROFILE PHOTO)
 ========================================================= */
 
 export const createPost = async (params: {
@@ -88,7 +88,13 @@ export const createPost = async (params: {
   const user = auth.currentUser;
   if (!user) throw new Error("User not authenticated");
 
-  const username = user.email?.split("@")[0] ?? "unknown";
+  // 1. Kullanıcının profil bilgilerini Firestore'dan çek (Önemli Değişiklik)
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+  const userData = userSnap.exists() ? userSnap.data() : null;
+
+  const username = userData?.username ?? user.email?.split("@")[0] ?? "unknown";
+  const profile_photo_url = userData?.photo_url ?? ""; // Profil fotoğrafı alanını al
 
   let image_url = "";
   let file_url = "";
@@ -118,9 +124,11 @@ export const createPost = async (params: {
     }));
   }
 
+  // 2. Postu profile_photo_url ile kaydet
   await addDoc(collection(db, "posts"), {
     user_id: user.uid,
     username,
+    profile_photo_url, // Buraya eklendi
     type: params.type,
     text: params.text ?? "",
     image_url,

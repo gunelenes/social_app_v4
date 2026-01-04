@@ -138,7 +138,7 @@ export default function MessagesScreen({ navigation }: any) {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       {loading ? (
         <LoadingState />
       ) : (
@@ -224,6 +224,7 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
     paddingBottom: 100,
+    paddingTop: 8, // 👈
   },
 
   listContentEmpty: {

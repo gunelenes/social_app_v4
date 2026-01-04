@@ -7,6 +7,7 @@ import {
   serverTimestamp,
   deleteDoc,
   doc,
+  getDoc, // Kullanıcı verisini çekmek için eklendi
   updateDoc,
   increment,
 } from "firebase/firestore";
@@ -21,11 +22,19 @@ export const createComment = async (
   const user = auth.currentUser;
   if (!user) throw new Error("Not authenticated");
 
-  const username = user.email?.split("@")[0] ?? "unknown";
+  // 1. Kullanıcının güncel profil bilgilerini Firestore'dan çekiyoruz
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+  const userData = userSnap.exists() ? userSnap.data() : null;
 
+  const username = userData?.username ?? user.email?.split("@")[0] ?? "unknown";
+  const profile_photo_url = userData?.photo_url ?? ""; // Profil fotoğrafı bilgisini aldık
+
+  // 2. Yorumu profil fotoğrafı URL'si ile birlikte kaydediyoruz
   await addDoc(collection(db, "posts", postId, "comments"), {
     user_id: user.uid,
     username,
+    profile_photo_url, // Denormalizasyon: Fotoğraf URL'sini yoruma kopyaladık
     text,
     created_date: serverTimestamp(),
   });

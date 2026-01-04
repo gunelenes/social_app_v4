@@ -172,7 +172,7 @@ export default function PostModalScreen({ navigation }: any) {
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Yeni Gönderi</Text>
             <View style={styles.userInfo}>
-              <View style={styles.userAvatarSmall}>
+              {/* <View style={styles.userAvatarSmall}>
                 <LinearGradient
                   colors={["#667eea", "#764ba2"]}
                   style={styles.avatarGradient}
@@ -183,7 +183,7 @@ export default function PostModalScreen({ navigation }: any) {
                     {username.charAt(0).toUpperCase()}
                   </Text>
                 </LinearGradient>
-              </View>
+              </View> */}
               <Text style={styles.usernameSmall}>@{username}</Text>
             </View>
           </View>

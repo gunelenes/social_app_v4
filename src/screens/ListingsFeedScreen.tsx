@@ -27,9 +27,11 @@ export default function ListingsFeedScreen({ navigation }: any) {
   const [listings, setListings] = useState<any[]>([]);
   const [imageIndices, setImageIndices] = useState<Record<string, number>>({});
 
+  /* ---------------- HEADER ---------------- */
   useLayoutEffect(() => {
     navigation.setOptions({
       title: "İlanlar",
+      headerBackTitleVisible: false,
       headerStyle: {
         backgroundColor: "#fff",
       },
@@ -41,6 +43,7 @@ export default function ListingsFeedScreen({ navigation }: any) {
     });
   }, []);
 
+  /* ---------------- DATA ---------------- */
   useEffect(() => {
     const q = query(
       collection(db, "listings"),
@@ -53,10 +56,9 @@ export default function ListingsFeedScreen({ navigation }: any) {
         ...d.data(),
       }));
       setListings(data);
-      
-      // Initialize image indices
+
       const indices: Record<string, number> = {};
-      data.forEach(item => {
+      data.forEach((item) => {
         indices[item.id] = 0;
       });
       setImageIndices(indices);
@@ -66,14 +68,15 @@ export default function ListingsFeedScreen({ navigation }: any) {
   const handleScroll = (listingId: string, event: any) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const currentIndex = Math.round(contentOffsetX / IMAGE_WIDTH);
-    setImageIndices(prev => ({
+    setImageIndices((prev) => ({
       ...prev,
       [listingId]: currentIndex,
     }));
   };
 
+  /* ---------------- UI ---------------- */
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <FlatList
         data={listings}
         keyExtractor={(item) => item.id}
@@ -81,45 +84,39 @@ export default function ListingsFeedScreen({ navigation }: any) {
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
           const currentImageIndex = imageIndices[item.id] || 0;
-          const hasMultipleImages = item.images && item.images.length > 1;
+          const hasMultipleImages = item.images?.length > 1;
 
           return (
             <View style={styles.card}>
               {/* Header */}
               <View style={styles.cardHeader}>
-                <View style={styles.avatarContainer}>
-                  <LinearGradient
-                    colors={["#667eea", "#764ba2"]}
-                    style={styles.avatar}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
-                    <Text style={styles.avatarText}>
-                      {item.username?.charAt(0).toUpperCase()}
-                    </Text>
-                  </LinearGradient>
-                </View>
+                <LinearGradient
+                  colors={["#667eea", "#764ba2"]}
+                  style={styles.avatar}
+                >
+                  <Text style={styles.avatarText}>
+                    {item.username?.charAt(0).toUpperCase()}
+                  </Text>
+                </LinearGradient>
+
                 <View style={styles.headerInfo}>
                   <Text style={styles.username}>@{item.username}</Text>
                   <Text style={styles.timestamp}>Yeni ilan</Text>
                 </View>
-                <View style={styles.badgeContainer}>
-                  <LinearGradient
-                    colors={["#f59e0b", "#f97316"]}
-                    style={styles.badge}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                  >
-                    <Text style={styles.badgeText}>İLAN</Text>
-                  </LinearGradient>
-                </View>
+
+                <LinearGradient
+                  colors={["#f59e0b", "#f97316"]}
+                  style={styles.badge}
+                >
+                  <Text style={styles.badgeText}>İLAN</Text>
+                </LinearGradient>
               </View>
 
-              {/* Title */}
+              {/* Text */}
               <Text style={styles.shortText}>{item.shortText}</Text>
 
-              {/* Image Slider */}
-              {item.images && item.images.length > 0 && (
+              {/* Images */}
+              {item.images?.length > 0 && (
                 <View style={styles.imageSliderContainer}>
                   <ScrollView
                     horizontal
@@ -127,62 +124,50 @@ export default function ListingsFeedScreen({ navigation }: any) {
                     showsHorizontalScrollIndicator={false}
                     onScroll={(e) => handleScroll(item.id, e)}
                     scrollEventThrottle={16}
-                    decelerationRate="fast"
                     snapToInterval={IMAGE_WIDTH}
-                    snapToAlignment="center"
+                    decelerationRate="fast"
                   >
                     {item.images.map((img: string, i: number) => (
                       <View key={i} style={styles.imageWrapper}>
-                        <Image 
-                          source={{ uri: img }} 
-                          style={styles.image}
-                          resizeMode="cover"
-                        />
+                        <Image source={{ uri: img }} style={styles.image} />
                       </View>
                     ))}
                   </ScrollView>
 
-                  {/* Image Counter */}
                   {hasMultipleImages && (
-                    <View style={styles.imageCounter}>
-                      <Text style={styles.imageCounterText}>
-                        {currentImageIndex + 1} / {item.images.length}
-                      </Text>
-                    </View>
-                  )}
+                    <>
+                      <View style={styles.imageCounter}>
+                        <Text style={styles.imageCounterText}>
+                          {currentImageIndex + 1} / {item.images.length}
+                        </Text>
+                      </View>
 
-                  {/* Dots Indicator */}
-                  {hasMultipleImages && (
-                    <View style={styles.dotsContainer}>
-                      {item.images.map((_: any, i: number) => (
-                        <View
-                          key={i}
-                          style={[
-                            styles.dot,
-                            currentImageIndex === i && styles.activeDot,
-                          ]}
-                        />
-                      ))}
-                    </View>
+                      <View style={styles.dotsContainer}>
+                        {item.images.map((_: any, i: number) => (
+                          <View
+                            key={i}
+                            style={[
+                              styles.dot,
+                              currentImageIndex === i && styles.activeDot,
+                            ]}
+                          />
+                        ))}
+                      </View>
+                    </>
                   )}
                 </View>
               )}
 
-              {/* Action Button */}
+              {/* Button */}
               <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("ListingDetail", {
-                    listing: item,
-                  })
-                }
                 style={styles.detailButton}
-                activeOpacity={0.8}
+                onPress={() =>
+                  navigation.navigate("ListingDetail", { listing: item })
+                }
               >
                 <LinearGradient
                   colors={["#667eea", "#764ba2"]}
                   style={styles.detailGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
                 >
                   <Text style={styles.detailText}>İlanı İncele</Text>
                   <Ionicons name="arrow-forward" size={18} color="#fff" />
@@ -197,13 +182,10 @@ export default function ListingsFeedScreen({ navigation }: any) {
       <TouchableOpacity
         style={styles.fab}
         onPress={() => navigation.navigate("CreateListing")}
-        activeOpacity={0.8}
       >
         <LinearGradient
           colors={["#667eea", "#764ba2"]}
           style={styles.fabGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
         >
           <Ionicons name="add" size={28} color="#fff" />
         </LinearGradient>
@@ -212,6 +194,8 @@ export default function ListingsFeedScreen({ navigation }: any) {
   );
 }
 
+/* ---------------- STYLES ---------------- */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -219,16 +203,16 @@ const styles = StyleSheet.create({
   },
 
   listContent: {
-    padding: 16,
-    paddingBottom: 100,
+    paddingHorizontal: 16,
+    paddingTop: 12,     // ✅ HEADER ALTINDAN DÜZGÜN BAŞLAR
+    paddingBottom: 120,
   },
 
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
     borderRadius: 20,
     marginBottom: 20,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 3,
@@ -239,11 +223,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    paddingBottom: 12,
-  },
-
-  avatarContainer: {
-    marginRight: 12,
   },
 
   avatar: {
@@ -252,10 +231,11 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 12,
   },
 
   avatarText: {
-    color: "#ffffff",
+    color: "#fff",
     fontSize: 18,
     fontWeight: "700",
   },
@@ -268,30 +248,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#1e293b",
-    marginBottom: 2,
   },
 
   timestamp: {
     fontSize: 13,
     color: "#94a3b8",
-    fontWeight: "500",
-  },
-
-  badgeContainer: {
-    borderRadius: 8,
-    overflow: "hidden",
   },
 
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 6,
+    borderRadius: 8,
   },
 
   badgeText: {
     color: "#fff",
     fontSize: 11,
     fontWeight: "800",
-    letterSpacing: 0.5,
   },
 
   shortText: {
@@ -304,7 +277,6 @@ const styles = StyleSheet.create({
   },
 
   imageSliderContainer: {
-    position: "relative",
     marginBottom: 16,
   },
 
@@ -323,7 +295,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 16,
     right: 28,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    backgroundColor: "rgba(0,0,0,0.7)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -342,7 +314,6 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: "row",
     justifyContent: "center",
-    alignItems: "center",
     gap: 6,
   },
 
@@ -350,30 +321,24 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    backgroundColor: "rgba(255,255,255,0.5)",
   },
 
   activeDot: {
     width: 20,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
   },
 
   detailButton: {
-    marginHorizontal: 16,
-    marginBottom: 16,
+    margin: 16,
     borderRadius: 14,
     overflow: "hidden",
-    shadowColor: "#667eea",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
   },
 
   detailGradient: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 14,
     gap: 8,
   },
@@ -388,12 +353,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
     bottom: 20,
-    borderRadius: 28,
-    shadowColor: "#667eea",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
   },
 
   fabGradient: {
