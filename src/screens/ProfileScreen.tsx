@@ -863,6 +863,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 20, fontWeight: "700", color: "#fff" },
   settingsButton: {
+    opacity:0,
     width: 40,
     height: 40,
     borderRadius: 20,
