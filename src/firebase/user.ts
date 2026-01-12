@@ -1,8 +1,17 @@
-import { doc, getDoc, setDoc, serverTimestamp,updateDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "./firebaseConfig";
 import { User } from "firebase/auth";
 
-export const createUserIfNotExists = async (user: User) => {
+export const createUserIfNotExists = async (
+  user: User,
+  faculty: string
+) => {
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
 
@@ -12,7 +21,8 @@ export const createUserIfNotExists = async (user: User) => {
       email: user.email,
       emailVerified: user.emailVerified,
       createdAt: serverTimestamp(),
-      username: user.email?.split("@")[0], // geçici username
+      username: user.email?.split("@")[0],
+      faculty, // 👈 BURASI
     });
   }
 };
@@ -22,6 +32,7 @@ export const updateUserProfile = async (
   data: {
     bio?: string;
     photo_url?: string;
+    faculty?: string;
   }
 ) => {
   const ref = doc(db, "users", uid);

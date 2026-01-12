@@ -93,10 +93,34 @@ export default function FeedScreen({ navigation }: any) {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={posts}
-        keyExtractor={(i) => i.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
+  data={posts}
+  keyExtractor={(i) => i.id}
+  contentContainerStyle={styles.listContent}
+  showsVerticalScrollIndicator={false}
+
+    ListHeaderComponent={
+      <TouchableOpacity
+        style={styles.facultyFeedButton}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate("FacultyFeed")}
+      >
+        <LinearGradient
+          colors={["#667eea", "#764ba2"]}
+          style={styles.facultyFeedGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <Text style={styles.facultyFeedEmoji}>🎓</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.facultyFeedTitle}>Fakültem</Text>
+            <Text style={styles.facultyFeedSubtitle}>
+              Sadece fakültene özel paylaşımlar
+            </Text>
+          </View>
+          <Text style={styles.facultyFeedArrow}>›</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    }
         renderItem={({ item }) => {
           const pollOptions = Array.isArray(item.poll_options) ? item.poll_options : [];
           const userVote = item.voted_user_ids?.find((v: any) => v.user_id === auth.currentUser?.uid);
@@ -305,5 +329,42 @@ const styles = StyleSheet.create({
   commentText: { fontSize: 14, color: "#334155" },
   commentUsername: { fontWeight: "700", color: "#1e293b" },
   commentButton: { marginHorizontal: 16, marginTop: 12, marginBottom: 16, padding: 12, backgroundColor: "#f0f4ff", borderRadius: 12, alignItems: "center", borderWidth: 1, borderColor: "#e0e7ff" },
+  facultyFeedButton: {
+  marginBottom: 16,
+  borderRadius: 20,
+  overflow: "hidden",
+  elevation: 4,
+},
+
+facultyFeedGradient: {
+  flexDirection: "row",
+  alignItems: "center",
+  paddingVertical: 16,
+  paddingHorizontal: 16,
+  gap: 12,
+},
+
+facultyFeedEmoji: {
+  fontSize: 28,
+},
+
+facultyFeedTitle: {
+  fontSize: 16,
+  fontWeight: "800",
+  color: "#ffffff",
+},
+
+facultyFeedSubtitle: {
+  fontSize: 13,
+  color: "#e0e7ff",
+  marginTop: 2,
+},
+
+facultyFeedArrow: {
+  fontSize: 28,
+  color: "#ffffff",
+  fontWeight: "700",
+},
+
   commentButtonText: { fontSize: 14, fontWeight: "700", color: "#667eea" },
 });

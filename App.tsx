@@ -18,7 +18,7 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser && firebaseUser.emailVerified) {
-        await createUserIfNotExists(firebaseUser);
+        await createUserIfNotExists(firebaseUser, "");
         setUser(firebaseUser);
       } else {
         setUser(null);

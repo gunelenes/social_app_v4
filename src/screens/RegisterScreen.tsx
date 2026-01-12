@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Modal,
 } from "react-native";
 import { useState } from "react";
 import { register } from "../firebase/auth";
@@ -15,6 +16,9 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { FACULTIES } from "../constants/faculties";
+import { auth } from "../firebase/firebaseConfig";
+import { createUserIfNotExists } from "../firebase/user";
 
 type Props = NativeStackScreenProps<any>;
 
@@ -22,31 +26,34 @@ export default function RegisterScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [faculty, setFaculty] = useState<string | null>(null);
+  const [facultyModal, setFacultyModal] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
 
-  const validateEmail = (email: string) => {
-    return email.toLowerCase().endsWith("@ogr.deu.edu.tr");
-  };
+  const validateEmail = (email: string) =>
+    email.toLowerCase().endsWith("@ogr.deu.edu.tr");
 
   const handleRegister = async () => {
-    // Validation
-    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
+    if (!email || !password || !confirmPassword || !faculty) {
       Alert.alert("Uyarı", "Lütfen tüm alanları doldurun");
       return;
     }
 
     if (!validateEmail(email)) {
-      Alert.alert("Uyarı", "Lütfen @ogr.deu.edu.tr uzantılı bir mail adresi kullanın");
+      Alert.alert("Uyarı", "@ogr.deu.edu.tr uzantılı mail kullanın");
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert("Uyarı", "Şifre en az 6 karakter olmalıdır");
+      Alert.alert("Uyarı", "Şifre en az 6 karakter olmalı");
       return;
     }
 
@@ -58,18 +65,18 @@ export default function RegisterScreen({ navigation }: Props) {
     setIsLoading(true);
     try {
       await register(email.trim(), password);
+
+      if (auth.currentUser) {
+        await createUserIfNotExists(auth.currentUser, faculty);
+      }
+
       Alert.alert(
-        "Başarılı! ✅",
-        "Doğrulama maili gönderildi. Lütfen mailinizi kontrol edin.",
-        [
-          {
-            text: "Tamam",
-            onPress: () => navigation.navigate("Login"),
-          },
-        ]
+        "Başarılı ✅",
+        "Doğrulama maili gönderildi.",
+        [{ text: "Tamam", onPress: () => navigation.navigate("Login") }]
       );
     } catch (err: any) {
-      Alert.alert("Hata", err.message || "Kayıt oluşturulamadı");
+      Alert.alert("Hata", err.message || "Kayıt başarısız");
     } finally {
       setIsLoading(false);
     }
@@ -85,35 +92,27 @@ export default function RegisterScreen({ navigation }: Props) {
   const strength = passwordStrength();
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
+        style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
+          {/* HEADER */}
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <LinearGradient
-                colors={["#667eea", "#764ba2"]}
-                style={styles.logo}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons name="person-add" size={40} color="#fff" />
-              </LinearGradient>
-            </View>
+            <LinearGradient colors={["#667eea", "#764ba2"]} style={styles.logo}>
+              <Ionicons name="person-add" size={40} color="#fff" />
+            </LinearGradient>
             <Text style={styles.title}>Hesap Oluştur 🎉</Text>
-            <Text style={styles.subtitle}>DEÜ öğrenci mailinle kayıt ol</Text>
+            <Text style={styles.subtitle}>DEÜ mail adresinle kayıt ol</Text>
           </View>
 
-          {/* Form */}
+          {/* FORM */}
           <View style={styles.form}>
-            {/* Email Input */}
+            {/* EMAIL */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>E-posta</Text>
               <View
@@ -123,63 +122,47 @@ export default function RegisterScreen({ navigation }: Props) {
                   email && !validateEmail(email) && styles.inputWrapperError,
                 ]}
               >
-                <Ionicons
-                  name="mail-outline"
-                  size={20}
-                  color={emailFocused ? "#667eea" : "#94a3b8"}
-                  style={styles.inputIcon}
-                />
+                <Ionicons name="mail-outline" size={20} color="#94a3b8" />
                 <TextInput
-                  placeholder="ornek@ogr.deu.edu.tr"
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  value={email}
-                  onChangeText={setEmail}
                   style={styles.input}
-                  placeholderTextColor="#94a3b8"
+                  placeholder="ornek@ogr.deu.edu.tr"
+                  value={email}
+                  autoCapitalize="none"
+                  onChangeText={setEmail}
                   onFocus={() => setEmailFocused(true)}
                   onBlur={() => setEmailFocused(false)}
                 />
-                {email && validateEmail(email) && (
-                  <Ionicons name="checkmark-circle" size={20} color="#10b981" />
-                )}
               </View>
-              {email && !validateEmail(email) && (
-                <Text style={styles.errorText}>
-                  @ogr.deu.edu.tr uzantılı mail kullanın
-                </Text>
-              )}
             </View>
 
-            {/* Password Input */}
+            {/* FACULTY */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Fakülte</Text>
+              <TouchableOpacity
+                style={styles.inputWrapper}
+                onPress={() => setFacultyModal(true)}
+              >
+                <Ionicons name="school-outline" size={20} color="#94a3b8" />
+                <Text style={[styles.input, { color: faculty ? "#1e293b" : "#94a3b8" }]}>
+                  {faculty || "Fakülte seçiniz"}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
+
+            {/* PASSWORD */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Şifre</Text>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  passwordFocused && styles.inputWrapperFocused,
-                ]}
-              >
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={passwordFocused ? "#667eea" : "#94a3b8"}
-                  style={styles.inputIcon}
-                />
+              <View style={styles.inputWrapper}>
+                <Ionicons name="lock-closed-outline" size={20} color="#94a3b8" />
                 <TextInput
-                  placeholder="En az 6 karakter"
+                  style={styles.input}
                   secureTextEntry={!showPassword}
                   value={password}
                   onChangeText={setPassword}
-                  style={styles.input}
-                  placeholderTextColor="#94a3b8"
-                  onFocus={() => setPasswordFocused(true)}
-                  onBlur={() => setPasswordFocused(false)}
+                  placeholder="En az 6 karakter"
                 />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                   <Ionicons
                     name={showPassword ? "eye-off-outline" : "eye-outline"}
                     size={20}
@@ -188,61 +171,25 @@ export default function RegisterScreen({ navigation }: Props) {
                 </TouchableOpacity>
               </View>
               {strength && (
-                <View style={styles.strengthContainer}>
-                  <View style={styles.strengthBar}>
-                    <View
-                      style={[
-                        styles.strengthFill,
-                        {
-                          width:
-                            strength.text === "Zayıf"
-                              ? "33%"
-                              : strength.text === "Orta"
-                              ? "66%"
-                              : "100%",
-                          backgroundColor: strength.color,
-                        },
-                      ]}
-                    />
-                  </View>
-                  <Text style={[styles.strengthText, { color: strength.color }]}>
-                    {strength.text}
-                  </Text>
-                </View>
+                <Text style={{ color: strength.color, fontWeight: "700" }}>
+                  {strength.text}
+                </Text>
               )}
             </View>
 
-            {/* Confirm Password Input */}
+            {/* CONFIRM */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Şifre Tekrar</Text>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  confirmPasswordFocused && styles.inputWrapperFocused,
-                  confirmPassword &&
-                    password !== confirmPassword &&
-                    styles.inputWrapperError,
-                ]}
-              >
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={confirmPasswordFocused ? "#667eea" : "#94a3b8"}
-                  style={styles.inputIcon}
-                />
+              <View style={styles.inputWrapper}>
+                <Ionicons name="lock-closed-outline" size={20} color="#94a3b8" />
                 <TextInput
-                  placeholder="Şifreyi tekrar girin"
+                  style={styles.input}
                   secureTextEntry={!showConfirmPassword}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  style={styles.input}
-                  placeholderTextColor="#94a3b8"
-                  onFocus={() => setConfirmPasswordFocused(true)}
-                  onBlur={() => setConfirmPasswordFocused(false)}
                 />
                 <TouchableOpacity
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <Ionicons
                     name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
@@ -251,143 +198,70 @@ export default function RegisterScreen({ navigation }: Props) {
                   />
                 </TouchableOpacity>
               </View>
-              {confirmPassword && password !== confirmPassword && (
-                <Text style={styles.errorText}>Şifreler eşleşmiyor</Text>
-              )}
             </View>
 
-            {/* Register Button */}
+            {/* REGISTER */}
             <TouchableOpacity
-              style={[
-                styles.registerButton,
-                isLoading && styles.registerButtonDisabled,
-              ]}
+              style={styles.registerButton}
               onPress={handleRegister}
               disabled={isLoading}
-              activeOpacity={0.8}
             >
               <LinearGradient
-                colors={
-                  isLoading ? ["#cbd5e1", "#94a3b8"] : ["#667eea", "#764ba2"]
-                }
+                colors={["#667eea", "#764ba2"]}
                 style={styles.registerGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
               >
-                {isLoading ? (
-                  <>
-                    <View style={styles.loadingSpinner} />
-                    <Text style={styles.registerText}>Kayıt yapılıyor...</Text>
-                  </>
-                ) : (
-                  <>
-                    <Text style={styles.registerText}>Kayıt Ol</Text>
-                    <Ionicons name="arrow-forward" size={20} color="#fff" />
-                  </>
-                )}
+                <Text style={styles.registerText}>
+                  {isLoading ? "Kayıt Yapılıyor..." : "Kayıt Ol"}
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
-
-          {/* Info Card */}
-          <View style={styles.infoCard}>
-            <Ionicons name="mail-outline" size={20} color="#667eea" />
-            <Text style={styles.infoText}>
-              Kayıt sonrası mailinize doğrulama linki gönderilecektir
-            </Text>
-          </View>
-
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>veya</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Login Link */}
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => navigation.navigate("Login")}
-            activeOpacity={0.7}
-          >
-            <View style={styles.loginContent}>
-              <Text style={styles.loginText}>Zaten hesabın var mı?</Text>
-              <Text style={styles.loginLink}>Giriş Yap</Text>
-            </View>
-          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* FACULTY MODAL */}
+      <Modal visible={facultyModal} animationType="slide">
+        <SafeAreaView style={{ flex: 1 }}>
+          <ScrollView>
+            {FACULTIES.map((f) => (
+              <TouchableOpacity
+                key={f}
+                style={styles.facultyItem}
+                onPress={() => {
+                  setFaculty(f);
+                  setFacultyModal(false);
+                }}
+              >
+                <Text style={styles.facultyText}>{f}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
 
+/* ---------------- STYLES ---------------- */
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f7fa",
-  },
-
-  keyboardView: {
-    flex: 1,
-  },
-
-  scrollContent: {
-    flexGrow: 1,
-    padding: 24,
-    justifyContent: "center",
-  },
-
-  header: {
-    alignItems: "center",
-    marginBottom: 40,
-  },
-
-  logoContainer: {
-    marginBottom: 24,
-  },
-
+  container: { flex: 1, backgroundColor: "#f5f7fa" },
+  scrollContent: { padding: 24 },
+  header: { alignItems: "center", marginBottom: 32 },
   logo: {
     width: 80,
     height: 80,
     borderRadius: 40,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#667eea",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    marginBottom: 16,
   },
+  title: { fontSize: 28, fontWeight: "800", color: "#1e293b" },
+  subtitle: { fontSize: 14, color: "#64748b" },
 
-  title: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#1e293b",
-    marginBottom: 8,
-  },
-
-  subtitle: {
-    fontSize: 16,
-    color: "#64748b",
-    fontWeight: "500",
-  },
-
-  form: {
-    gap: 20,
-    marginBottom: 24,
-  },
-
-  inputContainer: {
-    gap: 8,
-  },
-
-  label: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#1e293b",
-    marginLeft: 4,
-  },
-
+  form: { gap: 20 },
+  inputContainer: { gap: 6 },
+  label: { fontWeight: "700", color: "#1e293b" },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -395,170 +269,23 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 2,
     borderColor: "#e2e8f0",
-    paddingHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    paddingHorizontal: 14,
   },
+  inputWrapperFocused: { borderColor: "#667eea" },
+  inputWrapperError: { borderColor: "#ef4444" },
+  input: { flex: 1, paddingVertical: 14, fontSize: 15 },
 
-  inputWrapperFocused: {
-    borderColor: "#667eea",
-    shadowColor: "#667eea",
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-
-  inputWrapperError: {
-    borderColor: "#ef4444",
-  },
-
-  inputIcon: {
-    marginRight: 12,
-  },
-
-  input: {
-    flex: 1,
-    paddingVertical: 16,
-    fontSize: 16,
-    color: "#1e293b",
-  },
-
-  errorText: {
-    fontSize: 13,
-    color: "#ef4444",
-    marginLeft: 4,
-    fontWeight: "500",
-  },
-
-  strengthContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-
-  strengthBar: {
-    flex: 1,
-    height: 4,
-    backgroundColor: "#e2e8f0",
-    borderRadius: 2,
-    overflow: "hidden",
-  },
-
-  strengthFill: {
-    height: "100%",
-    borderRadius: 2,
-  },
-
-  strengthText: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-
-  registerButton: {
-    marginTop: 12,
-    borderRadius: 16,
-    overflow: "hidden",
-    shadowColor: "#667eea",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-
-  registerButtonDisabled: {
-    shadowOpacity: 0.1,
-    elevation: 2,
-  },
-
+  registerButton: { borderRadius: 16, overflow: "hidden", marginTop: 10 },
   registerGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
     paddingVertical: 16,
-    gap: 10,
-  },
-
-  registerText: {
-    color: "#fff",
-    fontSize: 17,
-    fontWeight: "700",
-  },
-
-  loadingSpinner: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-    borderTopColor: "#fff",
-  },
-
-  infoCard: {
-    flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#eff6ff",
+  },
+  registerText: { color: "#fff", fontWeight: "800", fontSize: 16 },
+
+  facultyItem: {
     padding: 16,
-    borderRadius: 12,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: "#dbeafe",
-    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
   },
-
-  infoText: {
-    flex: 1,
-    fontSize: 13,
-    color: "#1e40af",
-    lineHeight: 18,
-  },
-
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-    gap: 16,
-  },
-
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#e2e8f0",
-  },
-
-  dividerText: {
-    fontSize: 14,
-    color: "#94a3b8",
-    fontWeight: "600",
-  },
-
-  loginButton: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: "#e2e8f0",
-    overflow: "hidden",
-  },
-
-  loginContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    gap: 6,
-  },
-
-  loginText: {
-    fontSize: 15,
-    color: "#64748b",
-    fontWeight: "500",
-  },
-
-  loginLink: {
-    fontSize: 15,
-    color: "#667eea",
-    fontWeight: "700",
-  },
+  facultyText: { fontSize: 16 },
 });
