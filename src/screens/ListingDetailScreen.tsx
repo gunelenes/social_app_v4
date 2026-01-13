@@ -23,7 +23,8 @@ const IMAGE_WIDTH = width;
 export default function ListingDetailScreen({ route, navigation }: any) {
   const { listing } = route.params;
   const currentUid = auth.currentUser?.uid;
-  const isOwner = currentUid === listing.userId;
+  const isOwner = currentUid === listing.uid;
+
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const scrollY = new Animated.Value(0);
@@ -77,13 +78,13 @@ export default function ListingDetailScreen({ route, navigation }: any) {
     try {
       const res = await ensureDirectChat({
         currentUid,
-        otherUid: listing.userId,
+        otherUid: listing.uid,
         otherUsername: listing.username,
       });
 
       navigation.navigate("Chat", {
         chatId: res.chatId,
-        otherUserId: listing.userId,
+        otherUserId: listing.uid,
         otherUsername: listing.username,
       });
     } catch {
@@ -160,16 +161,22 @@ export default function ListingDetailScreen({ route, navigation }: any) {
           {/* User Info Card */}
           <View style={styles.userCard}>
             <View style={styles.avatarContainer}>
-              <LinearGradient
-                colors={["#667eea", "#764ba2"]}
-                style={styles.avatar}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Text style={styles.avatarText}>
-                  {listing.username?.charAt(0).toUpperCase()}
-                </Text>
-              </LinearGradient>
+              {listing.userPhoto ? (
+            <Image
+              source={{ uri: listing.userPhoto }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <LinearGradient
+              colors={["#667eea", "#764ba2"]}
+              style={styles.avatar}
+            >
+              <Text style={styles.avatarText}>
+                {listing.username?.charAt(0).toUpperCase()}
+              </Text>
+            </LinearGradient>
+          )}
+
               <View style={styles.verifiedBadge}>
                 <Ionicons name="checkmark-circle" size={18} color="#10b981" />
               </View>
@@ -382,6 +389,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 4,
+  },
+  avatarImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#e5e7eb",
   },
 
   avatarContainer: {

@@ -88,7 +88,7 @@ export default function LoginScreen({ navigation }: Props) {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  placeholder="ornek@email.com"
+                  placeholder="@ogr.deu.edu.tr"
                   autoCapitalize="none"
                   keyboardType="email-address"
                   value={email}

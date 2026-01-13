@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
+import { MediaTypeOptions } from "expo-image-picker";
 import { auth, db, storage } from "../firebase/firebaseConfig";
 import {
   addDoc,
@@ -22,6 +23,8 @@ import {
   getDocs,
   query,
   where,
+  doc,
+  getDoc
 } from "firebase/firestore";
 import {
   ref,
@@ -31,22 +34,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
+
 const { width } = Dimensions.get("window");
 const IMAGE_SIZE = (width - 64) / 3;
 const MAX_IMAGES = 5;
 
-async function getUsernameByUid(uid: string): Promise<string> {
-  const q = query(
-    collection(db, "users"),
-    where("uid", "==", uid)
-  );
-
-  const snap = await getDocs(q);
-
-  if (snap.empty) return "Kullanıcı";
-
-  return snap.docs[0].data().username ?? "Kullanıcı";
-}
 
 export default function CreateListingScreen({ navigation }: any) {
   const [shortText, setShortText] = useState("");
@@ -88,7 +80,7 @@ export default function CreateListingScreen({ navigation }: any) {
     }
 
     const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: MediaTypeOptions.Images,
       allowsMultipleSelection: true,
       selectionLimit: MAX_IMAGES - images.length,
       quality: 0.8,
@@ -159,17 +151,23 @@ export default function CreateListingScreen({ navigation }: any) {
     try {
       setLoading(true);
 
-      const username = await getUsernameByUid(uid);
+      const userSnap = await getDoc(doc(db, "users", uid));
+      const userData = userSnap.data();
+
       const imageUrls = await uploadImages(uid);
 
+
       await addDoc(collection(db, "listings"), {
-        userId: uid,
-        username,
+        uid: uid,                              // ✅ userId DEĞİL
+        username: userData?.username,
+        userPhoto: userData?.photo_url ?? null, // ✅ PROFİL FOTO
         shortText: shortText.trim(),
         longText: longText.trim(),
         images: imageUrls,
         createdAt: serverTimestamp(),
       });
+
+
 
       Alert.alert("Başarılı! 🎉", "İlan yayınlandı", [
         {

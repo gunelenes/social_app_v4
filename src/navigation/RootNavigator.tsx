@@ -17,21 +17,22 @@ const Stack = createNativeStackNavigator();
 export default function RootNavigator() {
   return (
     <Stack.Navigator>
-            {/* ---------------- FACULTY FEED ---------------- */}
-      <Stack.Screen
-        name="FacultyFeed"
-        component={FacultyFeedScreen}
-        options={{headerShown: false
-        }}
-      />
-    <Stack.Screen name="FacultyCreatePost" component={FacultyCreatePostScreen} />
+    
+    
       {/* ---------------- MAIN TABS ---------------- */}
       <Stack.Screen
         name="MainTabs"
         component={TabNavigator}
         options={{ headerShown: false }}
       />
-
+          {/* ---------------- FACULTY FEED ---------------- */}
+      <Stack.Screen
+        name="FacultyFeed"
+        component={FacultyFeedScreen}
+        options={{headerShown: false
+        }}
+      />
+      <Stack.Screen name="FacultyCreatePost" component={FacultyCreatePostScreen} />
       {/* ---------------- MODALS ---------------- */}
       <Stack.Screen
         name="PostModal"

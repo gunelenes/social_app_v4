@@ -90,6 +90,12 @@ export default function ListingsFeedScreen({ navigation }: any) {
             <View style={styles.card}>
               {/* Header */}
               <View style={styles.cardHeader}>
+                {item.userPhoto ? (
+                <Image
+                  source={{ uri: item.userPhoto }}
+                  style={styles.avatarImage}
+                />
+              ) : (
                 <LinearGradient
                   colors={["#667eea", "#764ba2"]}
                   style={styles.avatar}
@@ -98,6 +104,8 @@ export default function ListingsFeedScreen({ navigation }: any) {
                     {item.username?.charAt(0).toUpperCase()}
                   </Text>
                 </LinearGradient>
+              )}
+
 
                 <View style={styles.headerInfo}>
                   <Text style={styles.username}>@{item.username}</Text>
@@ -353,6 +361,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
     bottom: 20,
+  },
+    avatarImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: 12,
+    backgroundColor: "#e5e7eb",
   },
 
   fabGradient: {

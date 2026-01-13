@@ -98,29 +98,29 @@ export default function FeedScreen({ navigation }: any) {
   contentContainerStyle={styles.listContent}
   showsVerticalScrollIndicator={false}
 
-    ListHeaderComponent={
-      <TouchableOpacity
-        style={styles.facultyFeedButton}
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate("FacultyFeed")}
-      >
-        <LinearGradient
-          colors={["#667eea", "#764ba2"]}
-          style={styles.facultyFeedGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <Text style={styles.facultyFeedEmoji}>🎓</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.facultyFeedTitle}>Fakültem</Text>
-            <Text style={styles.facultyFeedSubtitle}>
-              Sadece fakültene özel paylaşımlar
-            </Text>
-          </View>
-          <Text style={styles.facultyFeedArrow}>›</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    }
+    // ListHeaderComponent={
+    //   <TouchableOpacity
+    //     style={styles.facultyFeedButton}
+    //     activeOpacity={0.85}
+    //     onPress={() => navigation.navigate("FacultyFeed")}
+    //   >
+    //     <LinearGradient
+    //       colors={["#667eea", "#764ba2"]}
+    //       style={styles.facultyFeedGradient}
+    //       start={{ x: 0, y: 0 }}
+    //       end={{ x: 1, y: 0 }}
+    //     >
+    //       <Text style={styles.facultyFeedEmoji}>🎓</Text>
+    //       <View style={{ flex: 1 }}>
+    //         <Text style={styles.facultyFeedTitle}>Fakültem</Text>
+    //         <Text style={styles.facultyFeedSubtitle}>
+    //           Sadece fakültene özel paylaşımlar
+    //         </Text>
+    //       </View>
+    //       <Text style={styles.facultyFeedArrow}>›</Text>
+    //     </LinearGradient>
+    //   </TouchableOpacity>
+    // }
         renderItem={({ item }) => {
           const pollOptions = Array.isArray(item.poll_options) ? item.poll_options : [];
           const userVote = item.voted_user_ids?.find((v: any) => v.user_id === auth.currentUser?.uid);

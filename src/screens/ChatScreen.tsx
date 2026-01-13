@@ -11,6 +11,7 @@ import {
   Alert,
   TouchableWithoutFeedback,
   Keyboard,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth } from "../firebase/firebaseConfig";
@@ -27,10 +28,11 @@ export default function ChatScreen({ route, navigation }: any) {
   const currentUser = auth.currentUser;
 
   const {
-    chatId: routeChatId,
-    otherUserId,
-    otherUsername,
-  } = route.params ?? {};
+  chatId: routeChatId,
+  otherUserId,
+  otherUsername,
+  otherUserPhoto, // ✅
+} = route.params ?? {};
 
   const [chatId, setChatId] = useState<string | null>(routeChatId ?? null);
   const [text, setText] = useState("");
@@ -53,16 +55,22 @@ export default function ChatScreen({ route, navigation }: any) {
       },
       headerRight: () => (
         <View style={styles.headerRight}>
-          <LinearGradient
-            colors={["#667eea", "#764ba2"]}
-            style={styles.headerAvatar}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <Text style={styles.headerAvatarText}>
-              {otherUsername?.charAt(0).toUpperCase()}
-            </Text>
-          </LinearGradient>
+          {otherUserPhoto ? (
+        <Image
+          source={{ uri: otherUserPhoto }}
+          style={styles.headerAvatarImage}
+        />
+      ) : (
+        <LinearGradient
+          colors={["#667eea", "#764ba2"]}
+          style={styles.headerAvatar}
+        >
+          <Text style={styles.headerAvatarText}>
+            {otherUsername?.charAt(0).toUpperCase()}
+          </Text>
+        </LinearGradient>
+      )}
+
         </View>
       ),
     });
@@ -224,16 +232,22 @@ export default function ChatScreen({ route, navigation }: any) {
                     ) : (
                       <View style={styles.theirMessageWrapper}>
                         <View style={styles.theirAvatar}>
-                          <LinearGradient
-                            colors={["#667eea", "#764ba2"]}
-                            style={styles.avatarGradient}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                          >
-                            <Text style={styles.avatarText}>
-                              {otherUsername?.charAt(0).toUpperCase()}
-                            </Text>
-                          </LinearGradient>
+                          {otherUserPhoto ? (
+                      <Image
+                        source={{ uri: otherUserPhoto }}
+                        style={styles.chatAvatarImage}
+                      />
+                    ) : (
+                      <LinearGradient
+                        colors={["#667eea", "#764ba2"]}
+                        style={styles.avatarGradient}
+                      >
+                        <Text style={styles.avatarText}>
+                          {otherUsername?.charAt(0).toUpperCase()}
+                        </Text>
+                      </LinearGradient>
+                    )}
+
                         </View>
                         <View style={styles.theirBubbleContainer}>
                           <View style={styles.theirBubble}>
@@ -368,6 +382,19 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginRight: 4,
     fontWeight: "500",
+  },
+  headerAvatarImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#e5e7eb",
+  },
+
+  chatAvatarImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#e5e7eb",
   },
 
   theirMessageWrapper: {

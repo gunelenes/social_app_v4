@@ -43,7 +43,7 @@ export default function App() {
             <Stack.Screen
               name="Login"
               component={LoginScreen}
-              options={{ headerShown: true, title: "Giriş Yap" }}
+              // options={{ headerShown: true, title: "Giriş Yap" }}
             />
             <Stack.Screen
               name="Register"
