@@ -14,7 +14,7 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { auth } from "../firebase/firebaseConfig";
+import { auth, db } from "../firebase/firebaseConfig";
 import { ensureDirectChat, setTyping } from "../services/chat";
 import {
   ChatMessage,
@@ -23,6 +23,7 @@ import {
 } from "../services/messages";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { doc, onSnapshot } from "firebase/firestore";
 
 export default function ChatScreen({ route, navigation }: any) {
   const currentUser = auth.currentUser;
@@ -31,8 +32,9 @@ export default function ChatScreen({ route, navigation }: any) {
   chatId: routeChatId,
   otherUserId,
   otherUsername,
-  otherUserPhoto, // ✅
+
 } = route.params ?? {};
+  const [otherUserPhoto, setOtherUserPhoto] = useState<string | null>(null);
 
   const [chatId, setChatId] = useState<string | null>(routeChatId ?? null);
   const [text, setText] = useState("");
@@ -56,25 +58,39 @@ export default function ChatScreen({ route, navigation }: any) {
       headerRight: () => (
         <View style={styles.headerRight}>
           {otherUserPhoto ? (
-        <Image
-          source={{ uri: otherUserPhoto }}
-          style={styles.headerAvatarImage}
-        />
-      ) : (
-        <LinearGradient
-          colors={["#667eea", "#764ba2"]}
-          style={styles.headerAvatar}
-        >
-          <Text style={styles.headerAvatarText}>
-            {otherUsername?.charAt(0).toUpperCase()}
-          </Text>
-        </LinearGradient>
-      )}
-
+            <Image
+              source={{ uri: otherUserPhoto }}
+              style={styles.headerAvatarImage}
+            />
+          ) : (
+            <LinearGradient
+              colors={["#667eea", "#764ba2"]}
+              style={styles.headerAvatar}
+            >
+              <Text style={styles.headerAvatarText}>
+                {otherUsername?.charAt(0).toUpperCase()}
+              </Text>
+            </LinearGradient>
+          )}
         </View>
       ),
     });
-  }, [otherUsername]);
+  }, [otherUsername, otherUserPhoto]);
+
+    useEffect(() => {
+    if (!otherUserId) return;
+
+    const unsub = onSnapshot(
+      doc(db, "users", otherUserId),
+      (snap) => {
+        if (snap.exists()) {
+          setOtherUserPhoto(snap.data().photo_url ?? null);
+        }
+      }
+    );
+
+    return unsub;
+  }, [otherUserId]);
 
   useEffect(() => {
     if (!currentUser) return;

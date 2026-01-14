@@ -1,6 +1,7 @@
 import { useEffect, useState, useLayoutEffect } from "react";
 import {
   FlatList,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -13,6 +14,7 @@ import {
   onSnapshot,
   orderBy,
   query,
+  doc,
 } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -31,6 +33,7 @@ export default function MessagesScreen({ navigation }: any) {
   const currentUser = auth.currentUser;
   const [items, setItems] = useState<InboxItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userPhotos, setUserPhotos] = useState<Record<string, string | null>>({});
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -45,6 +48,24 @@ export default function MessagesScreen({ navigation }: any) {
       headerShadowVisible: true,
     });
   }, []);
+    useEffect(() => {
+    if (items.length === 0) return;
+
+    const unsubs = items.map((item) =>
+      onSnapshot(doc(db, "users", item.otherUserId), (snap) => {
+        if (snap.exists()) {
+          setUserPhotos((prev) => ({
+            ...prev,
+            [item.otherUserId]: snap.data().photo_url ?? null,
+          }));
+        }
+      })
+    );
+
+    return () => {
+      unsubs.forEach((u) => u());
+    };
+  }, [items]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -78,6 +99,7 @@ export default function MessagesScreen({ navigation }: any) {
       chatId: item.chatId || item.id,
       otherUserId: item.otherUserId,
       otherUsername: item.otherUsername,
+      otherUserPhoto: item.otherPhotoURL ?? null,
     });
   };
 
@@ -137,7 +159,7 @@ export default function MessagesScreen({ navigation }: any) {
     </View>
   );
 
-  return (
+    return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       {loading ? (
         <LoadingState />
@@ -157,17 +179,26 @@ export default function MessagesScreen({ navigation }: any) {
                 onPress={() => openChat(item)}
                 activeOpacity={0.7}
               >
-                <LinearGradient
-                  colors={["#667eea", "#764ba2"]}
-                  style={styles.avatar}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Text style={styles.avatarText}>
-                    {item.otherUsername?.charAt(0).toUpperCase() ?? "?"}
-                  </Text>
-                </LinearGradient>
+                {/* 🔥 AVATAR */}
+                {userPhotos[item.otherUserId] ? (
+                  <Image
+                    source={{ uri: userPhotos[item.otherUserId]! }}
+                    style={styles.avatarImage}
+                  />
+                ) : (
+                  <LinearGradient
+                    colors={["#667eea", "#764ba2"]}
+                    style={styles.avatar}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Text style={styles.avatarText}>
+                      {item.otherUsername?.charAt(0).toUpperCase() ?? "?"}
+                    </Text>
+                  </LinearGradient>
+                )}
 
+                {/* CHAT INFO */}
                 <View style={styles.chatInfo}>
                   <View style={styles.chatHeader}>
                     <Text style={styles.username} numberOfLines={1}>
@@ -179,6 +210,7 @@ export default function MessagesScreen({ navigation }: any) {
                       </Text>
                     )}
                   </View>
+
                   <View style={styles.messageRow}>
                     <Text style={styles.lastMessage} numberOfLines={1}>
                       {item.lastMessageText ?? "Henüz mesaj yok"}
@@ -213,6 +245,7 @@ export default function MessagesScreen({ navigation }: any) {
       )}
     </SafeAreaView>
   );
+
 }
 
 const styles = StyleSheet.create({
@@ -264,6 +297,13 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
+  avatarImage: {
+  width: 52,
+  height: 52,
+  borderRadius: 26,
+  marginRight: 14,
+  backgroundColor: "#e5e7eb",
+},
 
   chatHeader: {
     flexDirection: "row",

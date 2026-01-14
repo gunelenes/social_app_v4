@@ -1,6 +1,7 @@
 import { useEffect, useState, useLayoutEffect } from "react";
 import {
   FlatList,
+  Image,
   StyleSheet,
   Text,
   TextInput,
@@ -154,16 +155,21 @@ export default function UserSearchScreen({ navigation }: any) {
               activeOpacity={0.7}
             >
               <View style={styles.userInfo}>
+                {item.photo_url ? (
+                <Image
+                  source={{ uri: item.photo_url }}
+                  style={styles.avatarImage}
+                />
+              ) : (
                 <LinearGradient
                   colors={["#667eea", "#764ba2"]}
                   style={styles.avatar}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
                 >
                   <Text style={styles.avatarText}>
                     {item.username?.charAt(0).toUpperCase()}
                   </Text>
                 </LinearGradient>
+              )}
 
                 <View style={styles.userDetails}>
                   <Text style={styles.username}>@{item.username}</Text>
@@ -278,6 +284,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
+  },
+  avatarImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    marginRight: 14,
+    backgroundColor: "#e5e7eb",
   },
 
   avatarText: {
