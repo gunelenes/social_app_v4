@@ -618,20 +618,17 @@ const styles = StyleSheet.create({
 
   infoTitle: {
     fontSize: 16,
-    fontWeight: "700",
-    color: "#1e40af",
-    marginBottom: 6,
+  
   },
 
   infoText: {
     fontSize: 13,
-    color: "#1e40af",
-    lineHeight: 20,
+   
   },
 
   inputContainer: {
     marginHorizontal: 16,
-    marginBottom: 24,
+
   },
 
   labelRow: {
