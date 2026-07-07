@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 800" width="720" height="800">
+  <defs>
+    <linearGradient id="bgS" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+    <radialGradient id="topGlowS" cx="0.5" cy="0" r="0.9">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bottomShadeS" cx="0.5" cy="1" r="0.8">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accentS" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="textS" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+    <filter id="softGlowS" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Icon block (centered top) -->
+  <g transform="translate(160 60)">
+    <rect width="400" height="400" rx="92" fill="url(#bgS)"/>
+    <rect width="400" height="400" rx="92" fill="url(#topGlowS)"/>
+    <rect width="400" height="400" rx="92" fill="url(#bottomShadeS)"/>
+
+    <circle cx="138" cy="226" r="4" fill="#ffffff" opacity="0.35"/>
+    <circle cx="170" cy="178" r="5" fill="#ffffff" opacity="0.5"/>
+    <circle cx="232" cy="116" r="5.5" fill="#ffffff" opacity="0.55"/>
+    <circle cx="264" cy="154" r="5" fill="#ffffff" opacity="0.45"/>
+
+    <path d="M 102 260 Q 200 50, 298 260"
+          stroke="#ffffff" stroke-width="28"
+          fill="none" stroke-linecap="round"/>
+
+    <circle cx="102" cy="260" r="25" fill="#ffffff"/>
+    <circle cx="96" cy="254" r="7" fill="#ffffff" opacity="0.55"/>
+
+    <circle cx="298" cy="260" r="38" fill="url(#accentS)" filter="url(#softGlowS)"/>
+    <circle cx="298" cy="260" r="38" fill="url(#accentS)"/>
+    <ellipse cx="288" cy="248" rx="12" ry="8" fill="#ffffff" opacity="0.5"/>
+  </g>
+
+  <!-- Wordmark "hops" centered -->
+  <g transform="translate(216 520)" fill="url(#textS)">
+    <!-- h -->
+    <path d="M 0 0
+             L 0 180
+             L 36 180
+             L 36 110
+             C 36 96, 44 88, 58 88
+             C 72 88, 80 96, 80 110
+             L 80 180
+             L 116 180
+             L 116 100
+             C 116 70, 98 52, 70 52
+             C 56 52, 44 58, 36 70
+             L 36 0
+             Z"/>
+    <!-- o -->
+    <g transform="translate(140 0)">
+      <path d="M 60 52
+               C 24 52, 0 80, 0 118
+               C 0 156, 24 184, 60 184
+               C 96 184, 120 156, 120 118
+               C 120 80, 96 52, 60 52
+               Z
+               M 60 84
+               C 78 84, 88 98, 88 118
+               C 88 138, 78 152, 60 152
+               C 42 152, 32 138, 32 118
+               C 32 98, 42 84, 60 84
+               Z"
+            fill-rule="evenodd"/>
+    </g>
+    <!-- p -->
+    <g transform="translate(276 0)">
+      <path d="M 0 56
+               L 36 56
+               L 36 76
+               C 44 60, 60 52, 78 52
+               C 110 52, 132 80, 132 118
+               C 132 156, 110 184, 78 184
+               C 62 184, 48 178, 40 168
+               L 40 240
+               L 0 240
+               Z
+               M 64 84
+               C 48 84, 38 98, 38 118
+               C 38 138, 48 152, 64 152
+               C 82 152, 92 138, 92 118
+               C 92 98, 82 84, 64 84
+               Z"
+            fill-rule="evenodd"/>
+    </g>
+    <!-- s -->
+    <g transform="translate(424 0)">
+      <path d="M 8 158
+               L 28 132
+               C 38 144, 52 152, 66 152
+               C 78 152, 86 148, 86 140
+               C 86 132, 78 128, 60 124
+               C 30 118, 8 108, 8 84
+               C 8 64, 28 52, 56 52
+               C 76 52, 92 58, 104 70
+               L 84 96
+               C 76 86, 66 82, 56 82
+               C 46 82, 40 86, 40 92
+               C 40 100, 50 102, 64 106
+               C 96 112, 118 122, 118 146
+               C 118 168, 96 184, 64 184
+               C 40 184, 22 176, 8 158
+               Z"/>
+    </g>
+  </g>
+
+  <!-- Tagline -->
+  <text x="360" y="744"
+        text-anchor="middle"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="30"
+        font-weight="600"
+        letter-spacing="10"
+        fill="#6b7280">KAMPÜSÜN AKIŞI</text>
+</svg>

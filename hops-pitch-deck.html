@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"/>
+<title>Hops — Yatırımcı Sunumu · DEÜ Teknopark BAMBU 2026</title>
+<style>
+  /* ============ PRINT / PAGE SETUP ============ */
+  @page { size: 13.333in 7.5in; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #14112E; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+    color: #ECEAF6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ============ SLIDE ============ */
+  .slide {
+    width: 13.333in;
+    height: 7.5in;
+    page-break-after: always;
+    page-break-inside: avoid;
+    position: relative;
+    overflow: hidden;
+    padding: 0.55in 0.7in;
+    background: linear-gradient(135deg, #14112E 0%, #1f1850 100%);
+  }
+  .slide:last-child { page-break-after: auto; }
+
+  /* Top accent bar */
+  .slide::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 6px;
+    background: linear-gradient(90deg, #667eea, #764ba2 50%, #fde047);
+  }
+  /* Footer */
+  .slide::after {
+    content: "Hops · Yatırımcı Sunumu · DEÜ Teknopark BAMBU 2026";
+    position: absolute; bottom: 0.25in; left: 0.7in;
+    font-size: 9px; letter-spacing: 1.5px; font-weight: 600;
+    color: #6b6790; text-transform: uppercase;
+  }
+  .pagenum {
+    position: absolute; bottom: 0.25in; right: 0.7in;
+    font-size: 9px; letter-spacing: 1.5px; font-weight: 700;
+    color: #b19cf5;
+  }
+
+  /* ============ COMMON ============ */
+  .eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: 3px;
+    color: #b19cf5; text-transform: uppercase; margin-bottom: 14px;
+  }
+  h1.title {
+    font-size: 44px; font-weight: 800; line-height: 1.15;
+    color: #ffffff; letter-spacing: -0.5px; margin-bottom: 8px;
+  }
+  h1.title .accent { color: #b19cf5; }
+  h1.title .yellow { color: #fde047; }
+  .lead {
+    font-size: 16px; color: #a9a7c6; line-height: 1.5; max-width: 8.5in;
+  }
+
+  /* ============ LOGO ============ */
+  .logo-svg { display: block; }
+
+  /* ============ STATS / CARDS ============ */
+  .stat-row { display: flex; gap: 18px; margin-top: 36px; }
+  .stat {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(177,156,245,0.20);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .stat .num { font-size: 38px; font-weight: 800; color: #b19cf5; line-height: 1; }
+  .stat .num .check { color: #4ade80; font-size: 28px; margin-left: 4px;}
+  .stat .lab { font-size: 11px; color: #a9a7c6; margin-top: 8px; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 600;}
+  .stat .desc { font-size: 12px; color: #6b6790; margin-top: 4px; }
+  .stat.featured { background: linear-gradient(135deg, #fde047, #f59e0b); border-color: #f59e0b; }
+  .stat.featured .num, .stat.featured .lab, .stat.featured .desc { color: #1f1b4b; }
+
+  .cards-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; margin-top: 30px; }
+  .cards-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 30px; }
+  .cards-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin-top: 30px; }
+  .cards-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; margin-top: 30px; }
+
+  .card {
+    background: rgba(36,32,71,0.85);
+    border: 1px solid rgba(177,156,245,0.22);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .card .icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px; color: white;
+    margin-bottom: 14px;
+  }
+  .card.amber .icon { background: linear-gradient(135deg, #fde047, #f59e0b); color: #1f1b4b; }
+  .card.danger .icon { background: linear-gradient(135deg, #f87171, #ef4444); color: white; }
+  .card h3 { font-size: 18px; font-weight: 700; color: #ECEAF6; margin-bottom: 8px; line-height: 1.25; }
+  .card p { font-size: 13px; color: #a9a7c6; line-height: 1.55; }
+  .card .number-badge {
+    position: absolute; top: 16px; right: 18px;
+    font-size: 36px; font-weight: 800; color: rgba(177,156,245,0.25);
+  }
+
+  /* Mini feature card */
+  .mini-card {
+    background: rgba(36,32,71,0.85);
+    border: 1px solid rgba(177,156,245,0.22);
+    border-radius: 12px;
+    padding: 18px 14px;
+    text-align: center;
+  }
+  .mini-card .num {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white; font-weight: 800; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px;
+  }
+  .mini-card.amber .num { background: linear-gradient(135deg, #fde047, #f59e0b); color: #1f1b4b; }
+  .mini-card h4 { font-size: 14px; font-weight: 700; color: white; margin-bottom: 6px; }
+  .mini-card p { font-size: 11px; color: #a9a7c6; line-height: 1.45; }
+
+  /* ============ PHONE MOCKUP ============ */
+  .phones-row { display: flex; gap: 24px; align-items: flex-start; justify-content: center; margin-top: 28px; }
+  .phone {
+    background: #1f2937; border-radius: 28px; padding: 8px;
+    box-shadow: 0 20px 50px rgba(102,126,234,0.25), 0 8px 16px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .phone .notch {
+    position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    width: 60px; height: 14px; background: #1f2937; border-radius: 8px; z-index: 2;
+  }
+  .phone .screen {
+    width: 200px; height: 420px; border-radius: 22px; overflow: hidden; background: white;
+  }
+  .phone .screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .phone-caption {
+    text-align: center; margin-top: 14px;
+    font-size: 12px; font-weight: 700; color: #b19cf5; letter-spacing: 1.2px; text-transform: uppercase;
+  }
+
+  /* Backend mockup card */
+  .backend-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(177,156,245,0.20);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .backend-card img { width: 100%; display: block; }
+  .backend-card .caption { padding: 12px 18px; font-size: 12px; color: #a9a7c6; font-weight: 600; }
+  .backend-card .caption .tag { color: #fde047; font-weight: 700; margin-right: 8px; }
+
+  /* ============ TABLE ============ */
+  table.compete {
+    width: 100%; border-collapse: collapse; margin-top: 26px;
+    background: rgba(36,32,71,0.7); border-radius: 12px; overflow: hidden;
+  }
+  table.compete th {
+    padding: 14px 18px; text-align: left; font-size: 12px;
+    color: #b19cf5; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    background: rgba(118,75,162,0.15);
+  }
+  table.compete th.hops { color: #fde047; background: linear-gradient(135deg, rgba(102,126,234,0.4), rgba(118,75,162,0.4)); }
+  table.compete td {
+    padding: 14px 18px; font-size: 14px; color: #ECEAF6;
+    border-top: 1px solid rgba(177,156,245,0.12);
+  }
+  table.compete td:first-child { font-weight: 600; }
+  table.compete td.no { color: #ef4444; text-align: center; font-weight: 700; }
+  table.compete td.partial { color: #f59e0b; text-align: center; font-weight: 700; font-size: 12px; }
+  table.compete td.yes { color: #4ade80; text-align: center; font-weight: 800; }
+  table.compete td.hops-yes { color: #fde047; text-align: center; font-weight: 800; background: rgba(253,224,71,0.06); }
+
+  /* ============ FUNNEL ============ */
+  .funnel { display: flex; align-items: stretch; gap: 18px; margin-top: 28px; }
+  .funnel-step {
+    flex: 1; text-align: center; padding: 30px 20px; border-radius: 16px;
+    background: rgba(36,32,71,0.85); border: 1px solid rgba(177,156,245,0.22);
+    position: relative;
+  }
+  .funnel-step.tam { background: rgba(102,126,234,0.10); }
+  .funnel-step.sam { background: rgba(118,75,162,0.18); }
+  .funnel-step.som { background: linear-gradient(135deg, #667eea, #764ba2); border-color: #fde047; }
+  .funnel-step .label {
+    font-size: 14px; letter-spacing: 3px; font-weight: 700; color: #b19cf5; text-transform: uppercase;
+  }
+  .funnel-step.som .label { color: #fde047; }
+  .funnel-step .big {
+    font-size: 56px; font-weight: 800; color: white; margin: 14px 0 10px;
+    letter-spacing: -1px;
+  }
+  .funnel-step .desc { font-size: 13px; color: #a9a7c6; line-height: 1.45; }
+  .funnel-step.som .desc { color: #ECEAF6; }
+  .funnel-step .arrow {
+    position: absolute; right: -22px; top: 50%; transform: translateY(-50%);
+    color: #b19cf5; font-size: 20px;
+  }
+
+  /* ============ REVENUE STREAMS ============ */
+  .revenue-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; margin-top: 26px; }
+  .rev-card {
+    background: rgba(36,32,71,0.85); border-radius: 16px; padding: 24px;
+    border: 1px solid rgba(177,156,245,0.22); position: relative;
+  }
+  .rev-card .phase {
+    display: inline-block; font-size: 10px; letter-spacing: 1.5px; font-weight: 700;
+    padding: 4px 10px; border-radius: 12px; margin-bottom: 12px;
+    background: rgba(177,156,245,0.15); color: #b19cf5; text-transform: uppercase;
+  }
+  .rev-card.phase1 .phase { background: #fde047; color: #1f1b4b; }
+  .rev-card h3 { font-size: 18px; font-weight: 700; color: white; margin-bottom: 8px; }
+  .rev-card p { font-size: 13px; color: #a9a7c6; line-height: 1.55; }
+  .rev-card .pct {
+    position: absolute; top: 20px; right: 22px;
+    font-size: 24px; font-weight: 800; color: rgba(177,156,245,0.5);
+  }
+
+  /* ============ ROADMAP TIMELINE ============ */
+  .timeline { display: flex; gap: 14px; margin-top: 24px; }
+  .tl-step {
+    flex: 1; padding: 18px 16px; border-radius: 14px;
+    background: rgba(36,32,71,0.85); border: 1px solid rgba(177,156,245,0.22);
+    position: relative;
+  }
+  .tl-step.done { background: rgba(74,222,128,0.10); border-color: rgba(74,222,128,0.35); }
+  .tl-step.now { background: linear-gradient(135deg, rgba(102,126,234,0.20), rgba(118,75,162,0.20)); border-color: #b19cf5; }
+  .tl-step.scale { background: linear-gradient(135deg, #fde047, #f59e0b); border-color: #f59e0b; }
+  .tl-step .tag {
+    display: inline-block; font-size: 9px; letter-spacing: 1.5px; font-weight: 800;
+    padding: 3px 9px; border-radius: 10px; margin-bottom: 10px;
+    background: rgba(177,156,245,0.20); color: #b19cf5;
+  }
+  .tl-step.done .tag { background: rgba(74,222,128,0.20); color: #4ade80; }
+  .tl-step.now .tag { background: rgba(177,156,245,0.30); color: #fff; }
+  .tl-step.scale .tag { background: rgba(31,27,75,0.20); color: #1f1b4b; }
+  .tl-step .quarter { font-size: 22px; font-weight: 800; color: white; margin-bottom: 6px; }
+  .tl-step.scale .quarter { color: #1f1b4b; }
+  .tl-step h4 { font-size: 13px; font-weight: 700; color: #b19cf5; margin-bottom: 10px; }
+  .tl-step.scale h4 { color: #1f1b4b; }
+  .tl-step ul { list-style: none; }
+  .tl-step ul li { font-size: 11px; color: #a9a7c6; padding: 2px 0 2px 12px; position: relative; line-height: 1.4; }
+  .tl-step ul li::before { content: "›"; position: absolute; left: 0; color: #b19cf5; font-weight: 700; }
+  .tl-step.scale ul li { color: #1f1b4b; }
+  .tl-step.scale ul li::before { color: #1f1b4b; }
+
+  /* ============ BUDGET DONUT (CSS) ============ */
+  .budget-row { display: flex; gap: 30px; align-items: center; margin-top: 24px; }
+  .donut {
+    width: 220px; height: 220px; border-radius: 50%;
+    background:
+      conic-gradient(
+        #fde047 0deg 126deg,        /* 35% Pazarlama */
+        #a78bfa 126deg 234deg,      /* 30% Ürün */
+        #67e8f9 234deg 306deg,      /* 20% Operasyon */
+        #f472b6 306deg 360deg       /* 15% Mentörlük */
+      );
+    position: relative;
+    flex-shrink: 0;
+  }
+  .donut::after {
+    content: ""; position: absolute; inset: 38px;
+    border-radius: 50%; background: #14112E;
+  }
+  .donut-center {
+    position: absolute; inset: 0; display: flex;
+    flex-direction: column; align-items: center; justify-content: center; z-index: 1;
+  }
+  .donut-center .big-num { font-size: 28px; font-weight: 800; color: #fde047; line-height: 1;}
+  .donut-center .lab { font-size: 10px; color: #a9a7c6; margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
+  .legend { flex: 1; }
+  .legend-item { display: flex; align-items: center; margin-bottom: 14px; }
+  .legend-item .swatch { width: 22px; height: 22px; border-radius: 6px; margin-right: 14px; flex-shrink: 0; }
+  .legend-item .pct { font-size: 18px; font-weight: 800; color: white; min-width: 50px; }
+  .legend-item .what { font-size: 14px; color: #ECEAF6; }
+  .legend-item .what small { color: #a9a7c6; display: block; margin-top: 2px; font-size: 11px; }
+
+  /* ============ VISION (final slide) ============ */
+  .quote-block {
+    background: rgba(177,156,245,0.08);
+    border-left: 4px solid #fde047;
+    padding: 30px 36px;
+    border-radius: 0 14px 14px 0;
+    margin-top: 28px;
+  }
+  .quote-block p {
+    font-size: 22px; line-height: 1.5; font-style: italic; color: white; font-weight: 300;
+  }
+  .quote-block p .accent { color: #fde047; font-weight: 500; font-style: normal; }
+  .quote-block .author {
+    margin-top: 18px; font-size: 13px; color: #b19cf5;
+    letter-spacing: 1.5px; font-weight: 700; text-transform: uppercase;
+  }
+  .contact-row {
+    display: flex; gap: 28px; margin-top: 30px;
+    padding-top: 24px; border-top: 1px solid rgba(177,156,245,0.20);
+  }
+  .contact-row .item { font-size: 13px; }
+  .contact-row .item .lab { color: #6b6790; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;}
+  .contact-row .item .val { color: white; font-weight: 600; }
+
+  /* ============ LAYOUT HELPERS ============ */
+  .two-col { display: grid; grid-template-columns: 1.05fr 1fr; gap: 38px; margin-top: 24px; }
+  .two-col-tight { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; margin-top: 28px;}
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; margin-top: 28px;}
+
+  /* Cover-specific */
+  .cover-logo {
+    display: flex; align-items: center; gap: 22px; margin-bottom: 38px;
+  }
+  .cover-logo .word {
+    font-size: 78px; font-weight: 800; line-height: 1;
+    background: linear-gradient(135deg, #fde047, #ffffff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cover-tag { font-size: 14px; font-weight: 700; color: #b19cf5; letter-spacing: 4px; text-transform: uppercase;}
+  .cover-title { font-size: 56px; font-weight: 800; color: white; line-height: 1.1; margin: 14px 0 18px; max-width: 9.5in; }
+  .cover-title .yellow { color: #fde047; }
+  .cover-sub { font-size: 17px; color: #a9a7c6; max-width: 8.5in; line-height: 1.55; }
+
+  /* Glow circles */
+  .glow1 { position: absolute; top: -120px; right: -100px; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle, rgba(118,75,162,0.35), transparent 70%); }
+  .glow2 { position: absolute; bottom: -150px; left: -100px; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle, rgba(102,126,234,0.30), transparent 70%); }
+
+  /* Highlight chip */
+  .hl-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(253,224,71,0.12); border: 1px solid rgba(253,224,71,0.30);
+    border-radius: 999px; padding: 7px 14px;
+    font-size: 12px; font-weight: 700; color: #fde047; letter-spacing: 0.5px;
+    margin-bottom: 18px;
+  }
+  .hl-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #fde047; animation: none; box-shadow: 0 0 12px #fde047; }
+
+  /* Note */
+  .footnote { margin-top: 22px; font-size: 11px; color: #6b6790; font-style: italic; }
+</style>
+</head>
+<body>
+
+<!-- ============ SLIDE 1 — COVER ============ -->
+<section class="slide">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+  <div class="cover-logo">
+    <svg class="logo-svg" width="120" height="120" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#667eea"/><stop offset="100%" stop-color="#764ba2"/>
+        </linearGradient>
+        <linearGradient id="lg2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fde047"/><stop offset="100%" stop-color="#f59e0b"/>
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="url(#lg1)"/>
+      <path d="M 22 92 Q 60 6, 98 92" stroke="white" stroke-width="9" fill="none" stroke-linecap="round"/>
+      <circle cx="22" cy="92" r="9" fill="white"/>
+      <circle cx="98" cy="92" r="13" fill="url(#lg2)"/>
+      <ellipse cx="94" cy="88" rx="4" ry="2.8" fill="white" opacity="0.55"/>
+    </svg>
+    <div>
+      <div class="word">Hops</div>
+      <div class="cover-tag" style="margin-top:8px;">Kampüsün Akışı</div>
+    </div>
+  </div>
+
+  <h1 class="cover-title">Her kampüs için <span class="yellow">doğrulanmış</span> sosyal platform</h1>
+  <p class="cover-sub">Konuşan bir fikir değil — 100 kişilik kapalı beta'dan geçmiş, canlı Firebase backend'i olan çalışan ürün. Dokuz Eylül'de başlıyor, dünyaya açılıyoruz.</p>
+
+  <div class="stat-row">
+    <div class="stat"><div class="num">100<span class="check">✓</span></div><div class="lab">Kapalı Beta</div><div class="desc">tamamlandı · gerçek kullanım verisi</div></div>
+    <div class="stat"><div class="num">70.000</div><div class="lab">DEÜ — İlk Pazar</div><div class="desc">aktif öğrenci · İzmir</div></div>
+    <div class="stat"><div class="num">300M</div><div class="lab">Global Hedef</div><div class="desc">dünyadaki üni öğrencileri</div></div>
+    <div class="stat featured"><div class="num">.edu</div><div class="lab">Hendek</div><div class="desc">kopyalanamaz giriş engeli</div></div>
+  </div>
+
+  <div class="pagenum">1 / 11  ·  DEÜ Teknopark · BAMBU Step Up 2026  ·  Kurucu: Enes Günel</div>
+</section>
+
+<!-- ============ SLIDE 2 — SORUN ============ -->
+<section class="slide">
+  <div class="glow1"></div>
+  <div class="eyebrow">Sorun</div>
+  <h1 class="title">Öğrenci iletişimi <span class="accent">dağınık ve güvensiz</span></h1>
+
+  <div class="cards-3">
+    <div class="card danger" style="position:relative;">
+      <span class="number-badge">01</span>
+      <div class="icon">!</div>
+      <h3>Kimlik doğrulama yok</h3>
+      <p>Mevcut platformlarda sahte hesaplar güven ortamını zedeliyor — taciz, dolandırıcılık, manipülasyon riski yüksek.</p>
+    </div>
+    <div class="card danger" style="position:relative;">
+      <span class="number-badge">02</span>
+      <div class="icon">!</div>
+      <h3>Akademik gürültü</h3>
+      <p>Genel sosyal medya algoritmaları öğrencinin akademik ihtiyacını karşılamaz — bölüme özel bilgi gürültü içinde kaybolur.</p>
+    </div>
+    <div class="card danger" style="position:relative;">
+      <span class="number-badge">03</span>
+      <div class="icon">!</div>
+      <h3>5+ ayrı platform</h3>
+      <p>Instagram · WhatsApp · OBS · anket araçları · ikinci el siteleri arasında dağılmış, parçalanmış bir kampüs deneyimi.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:32px; padding: 20px 26px; background: rgba(245,158,11,0.10); border-left: 4px solid #f59e0b; border-radius: 0 10px 10px 0;">
+    <p style="font-size: 15px; color: #fde047; font-weight: 600;">İkinci el ticaret ve öğrenci anketleri de kimlik doğrulamasız ortamlarda → manipülasyon ve dolandırıcılığa açık.</p>
+  </div>
+
+  <div class="pagenum">2 / 11  ·  Sorun</div>
+</section>
+
+<!-- ============ SLIDE 3 — ÇÖZÜM ============ -->
+<section class="slide">
+  <div class="glow2"></div>
+  <div class="eyebrow">Çözüm</div>
+  <h1 class="title"><span class="accent">Tek platform</span>, beş sorunun çözümü</h1>
+  <p class="lead">Merkezde <strong style="color:#fde047;">.edu doğrulama</strong> — diğer dört özelliği yapısal olarak güvenli kılan temel.</p>
+
+  <div class="cards-5">
+    <div class="mini-card amber"><div class="num">1</div><h4>.edu Doğrulama</h4><p>Kurumsal e-posta + tek hesap. Sıfır sahte profil.</p></div>
+    <div class="mini-card"><div class="num">2</div><h4>Fakülte Feed</h4><p>Genel akış + sadece kendi fakülten için izole akış.</p></div>
+    <div class="mini-card"><div class="num">3</div><h4>Güvenilir Anket</h4><p>Doğrulanmış kullanıcı, tek oy. Güvenilir karar verisi.</p></div>
+    <div class="mini-card"><div class="num">4</div><h4>Kampüs Market</h4><p>Doğrulanmış kullanıcılar arası güvenli ikinci el ticaret.</p></div>
+    <div class="mini-card"><div class="num">5</div><h4>Gerçek Zamanlı DM</h4><p>Anlık, özel ve güvenli birebir mesajlaşma.</p></div>
+  </div>
+
+  <div style="margin-top:32px; display:flex; gap: 18px;">
+    <div style="flex:1; padding: 18px 22px; background: linear-gradient(135deg, rgba(102,126,234,0.18), rgba(118,75,162,0.18)); border-radius: 12px; border: 1px solid rgba(177,156,245,0.30);">
+      <div style="font-size: 11px; letter-spacing: 1.5px; color: #b19cf5; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Yapısal Hendek</div>
+      <p style="font-size: 15px; color: white; line-height: 1.55;">.edu doğrulama, sosyal ağda <strong style="color:#fde047;">kopyalanamayan bir giriş engelidir</strong> — IG, WhatsApp veya yeni rakipler "üniversiteliyim" diyemez. Üniversite bunu onaylar.</p>
+    </div>
+    <div style="flex:1; padding: 18px 22px; background: linear-gradient(135deg, rgba(253,224,71,0.10), rgba(245,158,11,0.10)); border-radius: 12px; border: 1px solid rgba(253,224,71,0.30);">
+      <div style="font-size: 11px; letter-spacing: 1.5px; color: #fde047; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Net Etki</div>
+      <p style="font-size: 15px; color: white; line-height: 1.55;">5 ayrı platformda harcanan zamanı tek uygulamaya çekiyoruz — <strong style="color:#fde047;">daha güvenli, daha alakalı, daha bağlamlı.</strong></p>
+    </div>
+  </div>
+
+  <div class="pagenum">3 / 11  ·  Çözüm</div>
+</section>
+
+<!-- ============ SLIDE 4 — ÜRÜN DEMO 1 ============ -->
+<section class="slide">
+  <div class="glow1"></div>
+  <div class="hl-chip"><span class="dot"></span> CANLI ÜRÜN · 100 KİŞİLİK BETA'DAN GEÇTİ</div>
+  <h1 class="title">Konuşmuyoruz — <span class="yellow">çalışan ürünü</span> gösteriyoruz</h1>
+  <p class="lead">Sol: .edu doğrulamalı kurumsal giriş. Sağ: fakülte özel akışı.</p>
+
+  <div class="phones-row" style="margin-top:30px;">
+    <div>
+      <div class="phone"><div class="notch"></div><div class="screen"><img src="assets/screenshots/01-login.jpg" alt="Login"/></div></div>
+      <div class="phone-caption">01 · .edu Giriş</div>
+    </div>
+    <div style="display:flex; flex-direction: column; gap: 14px; align-self: center; max-width: 3.2in;">
+      <div style="padding: 14px 18px; background: rgba(36,32,71,0.85); border-radius: 12px; border: 1px solid rgba(177,156,245,0.22);">
+        <div style="font-size: 11px; letter-spacing: 1.5px; color: #b19cf5; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">Login Ekranı</div>
+        <p style="font-size: 12.5px; color: #ECEAF6; line-height: 1.5;">Yalnızca @ogr.deu.edu.tr (ve eşdeğer üniversite) adresleri kayıt olabilir. E-posta doğrulaması zorunlu.</p>
+      </div>
+      <div style="padding: 14px 18px; background: rgba(36,32,71,0.85); border-radius: 12px; border: 1px solid rgba(177,156,245,0.22);">
+        <div style="font-size: 11px; letter-spacing: 1.5px; color: #fde047; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">Fakülte Feed</div>
+        <p style="font-size: 12.5px; color: #ECEAF6; line-height: 1.5;">Mühendislik · Tıp · Hukuk... Her öğrenci sadece kendi fakültesinin akışını görür — gerçek bağlam, gerçek topluluk.</p>
+      </div>
+      <div style="padding: 14px 18px; background: linear-gradient(135deg, rgba(102,126,234,0.20), rgba(118,75,162,0.20)); border-radius: 12px; border: 1px solid rgba(177,156,245,0.40);">
+        <div style="font-size: 11px; letter-spacing: 1.5px; color: #fff; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">📊 Anket Modülü</div>
+        <p style="font-size: 12.5px; color: #ECEAF6; line-height: 1.5;">Doğrulanmış öğrenciler arası tek-oy anket — kulüpler için karar aracı, akademisyenler için saha verisi.</p>
+      </div>
+    </div>
+    <div>
+      <div class="phone"><div class="notch"></div><div class="screen"><img src="assets/screenshots/02-faculty-feed.jpg" alt="Faculty Feed"/></div></div>
+      <div class="phone-caption">02 · Fakülte Feed</div>
+    </div>
+  </div>
+
+  <div class="pagenum">4 / 11  ·  Ürün · Demo 1</div>
+</section>
+
+<!-- ============ SLIDE 5 — ÜRÜN DEMO 2 ============ -->
+<section class="slide">
+  <div class="glow2"></div>
+  <div class="hl-chip"><span class="dot"></span> KAMPÜS MARKET + GERÇEK ZAMANLI DM</div>
+  <h1 class="title"><span class="accent">İkinci el ticaret</span> ve <span class="yellow">birebir mesajlaşma</span> — tek uygulamada</h1>
+
+  <div class="phones-row" style="margin-top: 30px;">
+    <div>
+      <div class="phone"><div class="notch"></div><div class="screen"><img src="assets/screenshots/03-marketplace.jpg" alt="Marketplace"/></div></div>
+      <div class="phone-caption">03 · Kampüs Market</div>
+    </div>
+    <div style="display:flex; flex-direction: column; gap: 16px; align-self: center; max-width: 3.4in;">
+      <div style="padding: 16px 20px; background: rgba(36,32,71,0.85); border-radius: 12px; border: 1px solid rgba(177,156,245,0.22);">
+        <div style="font-size: 11px; letter-spacing: 1.5px; color: #b19cf5; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Kampüs Market</div>
+        <p style="font-size: 13px; color: #ECEAF6; line-height: 1.55;">Ders kitabı, laptop, bisiklet, etkinlik bileti, özel ders... <strong style="color:#fde047;">Sadece doğrulanmış üniversite öğrencileri arasında</strong> — Sahibinden'de tanımadığın insanla muhatap olma riski yok.</p>
+      </div>
+      <div style="padding: 16px 20px; background: rgba(36,32,71,0.85); border-radius: 12px; border: 1px solid rgba(177,156,245,0.22);">
+        <div style="font-size: 11px; letter-spacing: 1.5px; color: #b19cf5; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Gerçek Zamanlı DM</div>
+        <p style="font-size: 13px; color: #ECEAF6; line-height: 1.55;">Firestore tabanlı anlık mesajlaşma. İlan görüşmesi, ders notu paylaşımı, etkinlik koordinasyonu — <strong style="color:#fde047;">WhatsApp grubuna bağımlı kalmadan</strong>.</p>
+      </div>
+      <div style="padding: 14px 18px; background: linear-gradient(135deg, rgba(253,224,71,0.10), rgba(245,158,11,0.10)); border-radius: 12px; border-left: 3px solid #fde047;">
+        <p style="font-size: 12.5px; color: #fde047; line-height: 1.5; font-weight: 600;">"Kampüsteki Sahibinden + WhatsApp + Instagram'ı birleştiren tek, güvenli platform."</p>
+      </div>
+    </div>
+    <div>
+      <div class="phone"><div class="notch"></div><div class="screen"><img src="assets/screenshots/04-chat.jpg" alt="Chat"/></div></div>
+      <div class="phone-caption">04 · Birebir DM</div>
+    </div>
+  </div>
+
+  <div class="pagenum">5 / 11  ·  Ürün · Demo 2</div>
+</section>
+
+<!-- ============ SLIDE 6 — BACKEND & PROFILE ============ -->
+<section class="slide">
+  <div class="glow1"></div>
+  <div class="hl-chip"><span class="dot"></span> CANLI BACKEND · MOCKUP DEĞİL</div>
+  <h1 class="title">Veriler gerçek zamanlı <span class="yellow">Firebase</span>'de</h1>
+  <p class="lead">Expo · React Native · Firebase (Firestore + Storage + Auth). 100 kullanıcılı kapalı beta sırasında çalışan, ölçeklenebilir altyapı.</p>
+
+  <div style="display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 22px; margin-top: 24px;">
+    <div>
+      <div class="phone" style="margin: 0 auto;"><div class="notch"></div><div class="screen"><img src="assets/screenshots/05-profile.jpg" alt="Profile"/></div></div>
+      <div class="phone-caption">05 · Profil &amp; İçerik</div>
+    </div>
+    <div class="backend-card">
+      <img src="assets/screenshots/06-firestore.png" alt="Firestore"/>
+      <div class="caption"><span class="tag">FIRESTORE</span>faculty_posts · listings · users · chats — gerçek koleksiyonlar, gerçek dokümanlar.</div>
+    </div>
+    <div class="backend-card">
+      <img src="assets/screenshots/07-storage.png" alt="Storage"/>
+      <div class="caption"><span class="tag">STORAGE</span>posts/ · listings/ · images/ · faculty_files/ — kullanıcı medyası canlı yüklemede.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:26px; display:flex; gap: 16px;">
+    <div style="flex:1; padding: 14px 18px; background: rgba(36,32,71,0.85); border-radius: 12px; border: 1px solid rgba(177,156,245,0.22); text-align: center;">
+      <div style="font-size:22px; font-weight:800; color:#fde047;">iOS + Android</div>
+      <div style="font-size:11px; color:#a9a7c6; margin-top:4px; letter-spacing:1px; text-transform: uppercase;">Tek kod tabanı</div>
+    </div>
+    <div style="flex:1; padding: 14px 18px; background: rgba(36,32,71,0.85); border-radius: 12px; border: 1px solid rgba(177,156,245,0.22); text-align: center;">
+      <div style="font-size:22px; font-weight:800; color:#fde047;">React Native + Expo</div>
+      <div style="font-size:11px; color:#a9a7c6; margin-top:4px; letter-spacing:1px; text-transform: uppercase;">Hızlı iterasyon</div>
+    </div>
+    <div style="flex:1; padding: 14px 18px; background: rgba(36,32,71,0.85); border-radius: 12px; border: 1px solid rgba(177,156,245,0.22); text-align: center;">
+      <div style="font-size:22px; font-weight:800; color:#fde047;">Firebase Cloud</div>
+      <div style="font-size:11px; color:#a9a7c6; margin-top:4px; letter-spacing:1px; text-transform: uppercase;">Otomatik ölçek</div>
+    </div>
+    <div style="flex:1; padding: 14px 18px; background: rgba(36,32,71,0.85); border-radius: 12px; border: 1px solid rgba(177,156,245,0.22); text-align: center;">
+      <div style="font-size:22px; font-weight:800; color:#fde047;">TypeScript</div>
+      <div style="font-size:11px; color:#a9a7c6; margin-top:4px; letter-spacing:1px; text-transform: uppercase;">Tip güvenli</div>
+    </div>
+  </div>
+
+  <div class="pagenum">6 / 11  ·  Ürün · Canlı Backend</div>
+</section>
+
+<!-- ============ SLIDE 7 — PAZAR FIRSATI ============ -->
+<section class="slide">
+  <div class="glow2"></div>
+  <div class="eyebrow">Pazar Fırsatı</div>
+  <h1 class="title">Aşağıdan yukarı, <span class="accent">kanıtlanabilir</span> büyüme</h1>
+  <p class="lead">TAM / SAM / SOM modeli — Yıl 1'de DEÜ'de %5 penetrasyon hedefi, oradan İzmir → Türkiye → dünya.</p>
+
+  <div class="funnel">
+    <div class="funnel-step tam">
+      <div class="label">TAM</div>
+      <div class="big">300M</div>
+      <div class="desc">Dünyadaki tüm üniversite öğrencileri</div>
+      <span class="arrow">▶</span>
+    </div>
+    <div class="funnel-step sam">
+      <div class="label">SAM</div>
+      <div class="big">~150K</div>
+      <div class="desc">İzmir'deki 5 üniversite: DEÜ · EÜ · İYTE · Yaşar · İzmir Ekonomi</div>
+      <span class="arrow">▶</span>
+    </div>
+    <div class="funnel-step som">
+      <div class="label">SOM · Yıl 1</div>
+      <div class="big">3.500</div>
+      <div class="desc">DEÜ — %5 penetrasyon (BAMBU eko-sistemiyle güçlendirilmiş)</div>
+    </div>
+  </div>
+
+  <div class="stat-row" style="margin-top: 30px;">
+    <div class="stat"><div class="num">70.000</div><div class="lab">DEÜ Aktif Öğrenci</div><div class="desc">çevredeki en büyük üniversite</div></div>
+    <div class="stat"><div class="num">%15 / ay</div><div class="lab">Hedef Büyüme</div><div class="desc">ilk 6 ay viral kullanıcı edinimi</div></div>
+    <div class="stat"><div class="num">%94+</div><div class="lab">Z Kuşağı Mobil</div><div class="desc">günlük 3+ saat sosyal kullanım</div></div>
+  </div>
+
+  <div class="pagenum">7 / 11  ·  Pazar Fırsatı</div>
+</section>
+
+<!-- ============ SLIDE 8 — İŞ MODELİ ============ -->
+<section class="slide">
+  <div class="glow1"></div>
+  <div class="eyebrow">İş Modeli</div>
+  <h1 class="title">Üç gelir akışı — <span class="yellow">faz bazlı, sürdürülebilir</span></h1>
+  <p class="lead">Önce ücretsiz büyüme, sonra B2B reklam, sonra komisyon, sonunda kurumsal SaaS lisansı.</p>
+
+  <div class="revenue-row">
+    <div class="rev-card phase1">
+      <div class="phase">Faz 1 · Lansman</div>
+      <h3>📣 B2B Kampüs Reklam</h3>
+      <p>Kulüpler, yerel işletmeler ve kurumsal markalar için hedefli, UX'i bozmayan kampüs içi reklam alanları.</p>
+      <p style="margin-top:10px; color:#fde047; font-weight:700; font-size: 12px;">▶ İlk gelir akışı · Q4 2026</p>
+    </div>
+    <div class="rev-card">
+      <div class="phase">Faz 2 · 2027</div>
+      <h3>🛒 Marketplace Komisyonu</h3>
+      <p>Öne çıkarılan ilanlar ve işlem başına mikro gelir (premium listeleme, kategori vurgusu, "doğrulanmış satıcı" rozeti).</p>
+      <p style="margin-top:10px; color:#b19cf5; font-weight:700; font-size: 12px;">▶ Ölçek geliri · Q2 2027</p>
+    </div>
+    <div class="rev-card">
+      <div class="phase">Faz 3 · Ölçek</div>
+      <h3>🏛 Kurumsal Lisans · SaaS</h3>
+      <p>Üniversiteler için beyaz etiket çözüm. Rektörlük panelleri, kurum analitiği, kulüp yönetimi — tekrarlanan gelir.</p>
+      <p style="margin-top:10px; color:#b19cf5; font-weight:700; font-size: 12px;">▶ MRR modeli · 2027+</p>
+    </div>
+  </div>
+
+  <div style="margin-top: 28px; padding: 18px 24px; background: linear-gradient(135deg, rgba(253,224,71,0.10), rgba(245,158,11,0.06)); border-radius: 14px; border-left: 4px solid #fde047;">
+    <div style="font-size:11px; color: #fde047; font-weight:700; letter-spacing:1.5px; text-transform: uppercase; margin-bottom: 6px;">Birim Ekonomisi</div>
+    <p style="font-size: 14px; color: #ECEAF6; line-height: 1.55;">Mobil reklam pazarındaki kampüs segmenti CPM'leri yüksek (premium Z kuşağı). 70K aktif kullanıcıya ulaştığımızda, sadece reklam akışı <strong style="color:#fde047;">aylık 6 haneli ₺</strong> seviyesine ulaşır — kurumsal lisans bunun üstüne MRR ekler.</p>
+  </div>
+
+  <div class="pagenum">8 / 11  ·  İş Modeli</div>
+</section>
+
+<!-- ============ SLIDE 9 — REKABET ============ -->
+<section class="slide">
+  <div class="glow2"></div>
+  <div class="eyebrow">Rekabet &amp; Hendek</div>
+  <h1 class="title"><span class="accent">.edu doğrulama</span> — kopyalanamaz yapısal avantaj</h1>
+
+  <table class="compete">
+    <thead>
+      <tr>
+        <th>Özellik</th>
+        <th style="text-align:center;">Instagram / X</th>
+        <th style="text-align:center;">WhatsApp</th>
+        <th style="text-align:center;">OBS*</th>
+        <th class="hops" style="text-align:center;">HOPS</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Kimlik doğrulama</td><td class="no">✕</td><td class="no">✕</td><td class="partial">kısıtlı</td><td class="hops-yes">✓ .edu</td></tr>
+      <tr><td>Fakülte feed</td><td class="no">✕</td><td class="no">✕</td><td class="no">✕</td><td class="hops-yes">✓</td></tr>
+      <tr><td>Güvenilir anket</td><td class="no">✕</td><td class="no">✕</td><td class="no">✕</td><td class="hops-yes">✓</td></tr>
+      <tr><td>Kampüs market</td><td class="no">✕</td><td class="no">✕</td><td class="no">✕</td><td class="hops-yes">✓</td></tr>
+      <tr><td>Gerçek zamanlı DM</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">✕</td><td class="hops-yes">✓</td></tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:24px; display: grid; grid-template-columns: 1fr 1fr; gap: 22px;">
+    <div style="padding: 18px 22px; background: linear-gradient(135deg, rgba(102,126,234,0.18), rgba(118,75,162,0.18)); border-radius: 12px; border: 1px solid rgba(177,156,245,0.30);">
+      <div style="font-size: 11px; letter-spacing: 1.5px; color: #b19cf5; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Hendek</div>
+      <p style="font-size: 14px; color: white; line-height: 1.55;"><strong style="color:#fde047;">.edu yapısal engel</strong> + Teknopark meşruiyeti + 5 ayrı aracın tek platformda entegrasyonu. Yeni bir rakip "üniversiteliyim" diyemez — üniversite bunu onaylar.</p>
+    </div>
+    <div style="padding: 18px 22px; background: rgba(36,32,71,0.85); border-radius: 12px; border: 1px solid rgba(177,156,245,0.22);">
+      <div style="font-size: 11px; letter-spacing: 1.5px; color: #fde047; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Hops'un Yeri</div>
+      <p style="font-size: 14px; color: white; line-height: 1.55;">IG &amp; WP <em>genel sosyal</em>; OBS <em>idari silo</em>. Hops <strong style="color:#fde047;">öğrenci-merkezli sosyal + güvenilir kimlik</strong> kesişiminde tek başına duruyor.</p>
+    </div>
+  </div>
+
+  <p class="footnote">* OBS = Öğrenci Bilgi Sistemi — doğrulama var ama idari, sosyal etkileşim sıfır.</p>
+
+  <div class="pagenum">9 / 11  ·  Rekabet</div>
+</section>
+
+<!-- ============ SLIDE 10 — YATIRIM & YOL HARİTASI ============ -->
+<section class="slide">
+  <div class="glow1"></div>
+  <div class="eyebrow">Yatırım Talebi &amp; Yürütme</div>
+  <h1 class="title"><span class="yellow">2.200.000 ₺</span>  ·  BİGG + BAMBU desteği</h1>
+  <p class="lead">12 aylık yürütme planı — Q3 2026'dan Q3 2027'ye, DEÜ lansmanı ve İzmir geneli ölçek.</p>
+
+  <div class="budget-row">
+    <div class="donut">
+      <div class="donut-center"><div class="big-num">2.2M ₺</div><div class="lab">Toplam Talep</div></div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="swatch" style="background:#fde047;"></div><div class="pct">%35</div><div class="what">Pazarlama &amp; kullanıcı edinimi<small>kampüs etkinlikleri, içerik, etkileyici iş birlikleri</small></div></div>
+      <div class="legend-item"><div class="swatch" style="background:#a78bfa;"></div><div class="pct">%30</div><div class="what">Ürün geliştirme &amp; altyapı<small>yeni özellikler, ölçeklenebilir backend, performans</small></div></div>
+      <div class="legend-item"><div class="swatch" style="background:#67e8f9;"></div><div class="pct">%20</div><div class="what">Operasyon &amp; hukuki danışmanlık<small>şirket kuruluş, KVKK, sözleşmeler, ofis</small></div></div>
+      <div class="legend-item"><div class="swatch" style="background:#f472b6;"></div><div class="pct">%15</div><div class="what">Mentörlük &amp; eğitim<small>BAMBU mentörlüğü, ekip geliştirme</small></div></div>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-step done"><span class="tag">✓ TAMAMLANDI</span><div class="quarter">Q2 2026</div><h4>Kapalı Beta</h4><ul><li>100 kullanıcı tamamlandı</li><li>Gerçek kullanım verisi</li><li>Geri bildirim toplandı</li></ul></div>
+    <div class="tl-step now"><span class="tag">DEVAM EDİYOR</span><div class="quarter">Q3 2026</div><h4>Genişletilmiş Beta</h4><ul><li>500+ kullanıcı hedefi</li><li>UI/UX iterasyonu</li><li>App Store &amp; Play hazırlığı</li></ul></div>
+    <div class="tl-step"><span class="tag">PLANLI</span><div class="quarter">Q4 2026</div><h4>DEÜ Lansmanı</h4><ul><li>Kampüs geneli açılış</li><li>Fakülte &amp; kulüp iş birlikleri</li><li>Hedef: 3.500 (%5)</li></ul></div>
+    <div class="tl-step scale"><span class="tag">ÖLÇEK</span><div class="quarter">2027+</div><h4>Global</h4><ul><li>İzmir → Türkiye → dünya</li><li>Topluluk &amp; kulüp feed'leri</li><li>Gelir modeli + SaaS lisans</li></ul></div>
+  </div>
+
+  <div class="pagenum">10 / 11  ·  Yatırım &amp; Yürütme</div>
+</section>
+
+<!-- ============ SLIDE 11 — VİZYON ============ -->
+<section class="slide">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+  <div class="eyebrow">Vizyon</div>
+  <h1 class="title">Her kampüs için <span class="yellow">doğrulanmış</span> sosyal ağ</h1>
+
+  <div class="cards-3">
+    <div class="card">
+      <div class="icon" style="background: linear-gradient(135deg, #4ade80, #16a34a);">🛡</div>
+      <h3>Güven</h3>
+      <p>Doğrulanmış kimliklerle sahte hesap sıfır. Güvenli ticaret, güvenli anket, güvenli sohbet.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🤝</div>
+      <h3>Topluluk</h3>
+      <p>Fakülte &amp; kulüp bazlı dinamik bağlar. İzole akışlar, gerçek bağlam.</p>
+    </div>
+    <div class="card amber">
+      <div class="icon">🌍</div>
+      <h3>Büyüme</h3>
+      <p>DEÜ'den dünyaya ölçeklenebilir model. .edu hendeği global standart.</p>
+    </div>
+  </div>
+
+  <div class="quote-block">
+    <p>"Güvenli kampüs kimliğiyle üniversite öğrencilerini bir araya getiriyoruz — <span class="accent">Dokuz Eylül'de başlıyor, dünyadaki her kampüs için</span> doğrulanmış sosyal ağ olmayı hedefliyoruz."</p>
+    <div class="author">Enes Günel · Kurucu · Hops</div>
+  </div>
+
+  <div class="contact-row">
+    <div class="item"><div class="lab">E-posta</div><div class="val">2019510105@ogr.deu.edu.tr</div></div>
+    <div class="item"><div class="lab">Web</div><div class="val">www.hops.app</div></div>
+    <div class="item"><div class="lab">Ofis</div><div class="val">DEÜ Teknopark · BAMBU Giriş Ofisi · İzmir</div></div>
+    <div class="item"><div class="lab">Tarih</div><div class="val">Haziran 2026</div></div>
+  </div>
+
+  <div class="pagenum">11 / 11  ·  Vizyon &amp; İletişim</div>
+</section>
+
+</body>
+</html>

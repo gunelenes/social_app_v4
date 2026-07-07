@@ -1,0 +1,530 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 500 700" width="500mm" height="700mm">
+  <!-- ============ DEFS ============ -->
+  <defs>
+    <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+    <linearGradient id="brandGradH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+    <linearGradient id="brandGradDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1f1b4b"/>
+      <stop offset="100%" stop-color="#2d1f5e"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="pageBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fafbff"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <radialGradient id="topGlow" cx="0.5" cy="0" r="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.2"/>
+      <feOffset dx="0" dy="1"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="phoneShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.2"/>
+      <feOffset dx="0" dy="2.2"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.32"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Phone screen clip paths -->
+    <clipPath id="phone1Clip"><rect x="0" y="0" width="46" height="92" rx="4"/></clipPath>
+    <clipPath id="phone2Clip"><rect x="0" y="0" width="46" height="92" rx="4"/></clipPath>
+    <clipPath id="phone3Clip"><rect x="0" y="0" width="46" height="92" rx="4"/></clipPath>
+  </defs>
+
+  <!-- ============ PAGE BACKGROUND ============ -->
+  <rect width="500" height="700" fill="url(#pageBg)"/>
+  <circle cx="500" cy="0" r="120" fill="#667eea" opacity="0.05"/>
+  <circle cx="0" cy="700" r="140" fill="#764ba2" opacity="0.05"/>
+  <circle cx="480" cy="430" r="3" fill="#fde047" opacity="0.6"/>
+  <circle cx="20" cy="320" r="3" fill="#667eea" opacity="0.4"/>
+
+  <!-- ============ SIZE BADGE ============ -->
+  <g transform="translate(193 8)">
+    <rect width="114" height="11" rx="5.5" fill="#0f172a"/>
+    <text x="57" y="7.6" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
+          font-size="5" font-weight="600" fill="#ffffff" letter-spacing="0.8">50 x 70 cm  •  Tek Sayfa  •  Tek Yüz</text>
+  </g>
+
+  <!-- ============ HEADER ============ -->
+  <g transform="translate(20 28)">
+    <rect width="460" height="106" rx="14" fill="url(#brandGradDark)"/>
+    <rect width="460" height="106" rx="14" fill="url(#topGlow)"/>
+    <!-- hop trail dots -->
+    <circle cx="380" cy="22" r="1.6" fill="#ffffff" opacity="0.4"/>
+    <circle cx="400" cy="36" r="2.2" fill="#ffffff" opacity="0.55"/>
+    <circle cx="422" cy="28" r="1.8" fill="#ffffff" opacity="0.45"/>
+    <circle cx="442" cy="50" r="1.6" fill="#ffffff" opacity="0.35"/>
+
+    <!-- LOGO ICON -->
+    <g transform="translate(18 16)">
+      <rect width="70" height="70" rx="16" fill="url(#brandGrad)"/>
+      <rect width="70" height="70" rx="16" fill="url(#topGlow)"/>
+      <path d="M 14 56 Q 35 6, 56 56" stroke="#ffffff" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+      <circle cx="14" cy="56" r="5" fill="#ffffff"/>
+      <circle cx="56" cy="56" r="7.5" fill="url(#accentGrad)" filter="url(#softGlow)"/>
+      <ellipse cx="54" cy="54" rx="2.4" ry="1.6" fill="#ffffff" opacity="0.6"/>
+      <circle cx="24" cy="42" r="1" fill="#ffffff" opacity="0.5"/>
+      <circle cx="34" cy="30" r="1.2" fill="#ffffff" opacity="0.7"/>
+      <circle cx="44" cy="36" r="1.1" fill="#ffffff" opacity="0.6"/>
+    </g>
+
+    <!-- HEADER TEXT — clean vertical stack to avoid wordmark collision -->
+    <g transform="translate(102 14)">
+      <!-- Top tag -->
+      <text font-family="Helvetica, Arial, sans-serif" font-size="5" font-weight="700"
+            fill="#fde047" letter-spacing="1.2">PROJE ADI · FAKÜLTE TEMELLİ KAMPÜS SOSYAL AĞI</text>
+
+      <!-- Hops wordmark with KAMPÜSÜN AKIŞI tagline -->
+      <text y="22" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="800"
+            fill="#ffffff" letter-spacing="-0.5">Hops <tspan font-size="6" font-weight="700" fill="#fde047" letter-spacing="1.4">— KAMPÜSÜN AKIŞI</tspan></text>
+      <text y="30" font-family="Helvetica, Arial, sans-serif" font-size="5.4" font-weight="400"
+            fill="#ffffff" fill-opacity="0.88" font-style="italic">"Her kampüs için doğrulanmış sosyal platform — DEÜ'den dünyaya"</text>
+
+      <!-- Founder & event badges -->
+      <g transform="translate(0 32)">
+        <rect width="176" height="11" rx="5.5" fill="#ffffff" fill-opacity="0.14"/>
+        <circle cx="6" cy="5.5" r="3" fill="#fde047"/>
+        <text x="6" y="6.8" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="3.8" font-weight="800" fill="#1f1b4b">B</text>
+        <text x="12" y="7.3" font-family="Helvetica, Arial, sans-serif" font-size="4.4" font-weight="600" fill="#ffffff">DEÜ Teknopark · BAMBU Step Up 2026</text>
+      </g>
+      <g transform="translate(184 32)">
+        <rect width="174" height="11" rx="5.5" fill="#ffffff" fill-opacity="0.14"/>
+        <circle cx="6" cy="5.5" r="3" fill="url(#accentGrad)"/>
+        <text x="6" y="6.8" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="3.2" font-weight="800" fill="#1f1b4b">EG</text>
+        <text x="12" y="7.3" font-family="Helvetica, Arial, sans-serif" font-size="4.4" font-weight="600" fill="#ffffff">Kurucu — Enes Günel · DEÜ Müh. Fak.</text>
+      </g>
+
+      <!-- Yellow strap with the proof line -->
+      <g transform="translate(0 46)">
+        <rect width="358" height="10" rx="5" fill="#fde047"/>
+        <text x="179" y="6.8" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="4.6" font-weight="800" fill="#1f1b4b" letter-spacing="0.6">KONUŞAN BİR FİKİR DEĞİL — 100 KİŞİLİK BETA'DAN GEÇMİŞ ÇALIŞAN ÜRÜN</text>
+      </g>
+
+      <!-- Tech stack chips -->
+      <g transform="translate(0 60)" font-family="Helvetica, Arial, sans-serif" font-size="3.6" font-weight="700">
+        <g><rect width="44" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.18"/><text x="22" y="6" text-anchor="middle" fill="#ffffff">iOS + Android</text></g>
+        <g transform="translate(48 0)"><rect width="44" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.18"/><text x="22" y="6" text-anchor="middle" fill="#ffffff">React Native</text></g>
+        <g transform="translate(96 0)"><rect width="44" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.18"/><text x="22" y="6" text-anchor="middle" fill="#ffffff">Firebase</text></g>
+        <g transform="translate(144 0)"><rect width="44" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.18"/><text x="22" y="6" text-anchor="middle" fill="#ffffff">TypeScript</text></g>
+        <g transform="translate(192 0)"><rect width="60" height="9" rx="4.5" fill="#fde047"/><text x="30" y="6" text-anchor="middle" fill="#1f1b4b">Yatırım: 2.200.000 ₺</text></g>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============ KPI RIBBON (the proof) ============ -->
+  <g transform="translate(20 140)" font-family="Helvetica, Arial, sans-serif">
+    <g>
+      <rect width="110" height="26" rx="6" fill="#ffffff" stroke="#e8ecff" stroke-width="0.4" filter="url(#cardShadow)"/>
+      <circle cx="14" cy="13" r="7" fill="#dcfce7"/>
+      <text x="14" y="15.6" text-anchor="middle" font-size="7" font-weight="800" fill="#16a34a">✓</text>
+      <text x="26" y="11" font-size="9" font-weight="800" fill="url(#brandGradH)">100 kişi</text>
+      <text x="26" y="18" font-size="3.6" font-weight="500" fill="#6b7280">KAPALI BETA TAMAMLANDI</text>
+      <text x="26" y="22" font-size="3.6" fill="#9ca3af">gerçek kullanım verisi</text>
+    </g>
+    <g transform="translate(116 0)">
+      <rect width="110" height="26" rx="6" fill="#ffffff" stroke="#e8ecff" stroke-width="0.4" filter="url(#cardShadow)"/>
+      <circle cx="13" cy="13" r="7" fill="#ede9fe"/>
+      <text x="13" y="15.5" text-anchor="middle" font-size="6" font-weight="800" fill="#7c3aed">DEÜ</text>
+      <text x="24" y="11" font-size="9" font-weight="800" fill="url(#brandGradH)">70.000</text>
+      <text x="24" y="18" font-size="3.6" font-weight="500" fill="#6b7280">İLK HEDEF PAZAR</text>
+      <text x="24" y="22" font-size="3.6" fill="#9ca3af">DEÜ aktif öğrenci sayısı</text>
+    </g>
+    <g transform="translate(232 0)">
+      <rect width="110" height="26" rx="6" fill="#ffffff" stroke="#e8ecff" stroke-width="0.4" filter="url(#cardShadow)"/>
+      <circle cx="13" cy="13" r="7" fill="#fef3c7"/>
+      <!-- globe icon -->
+      <circle cx="13" cy="13" r="4.4" fill="none" stroke="#d97706" stroke-width="0.8"/>
+      <ellipse cx="13" cy="13" rx="2" ry="4.4" fill="none" stroke="#d97706" stroke-width="0.6"/>
+      <line x1="8.6" y1="13" x2="17.4" y2="13" stroke="#d97706" stroke-width="0.6"/>
+      <text x="24" y="11" font-size="9" font-weight="800" fill="url(#brandGradH)">300M</text>
+      <text x="24" y="18" font-size="3.6" font-weight="500" fill="#6b7280">GLOBAL HEDEF PAZAR</text>
+      <text x="24" y="22" font-size="3.6" fill="#9ca3af">dünyadaki üni öğrencileri</text>
+    </g>
+    <g transform="translate(348 0)">
+      <rect width="112" height="26" rx="6" fill="url(#brandGradDark)" filter="url(#cardShadow)"/>
+      <circle cx="14" cy="13" r="7" fill="url(#accentGrad)"/>
+      <text x="14" y="15.6" text-anchor="middle" font-size="6" font-weight="800" fill="#0f172a">.edu</text>
+      <text x="26" y="11" font-size="9" font-weight="800" fill="#ffffff">Hendek</text>
+      <text x="26" y="18" font-size="3.6" font-weight="500" fill="#fde047">KOPYALANAMAZ GİRİŞ ENGELİ</text>
+      <text x="26" y="22" font-size="3.6" fill="#cbd5ff">kurumsal e-posta zorunlu</text>
+    </g>
+  </g>
+
+  <!-- ============ LEFT COLUMN — PROBLEM / SOLUTION / SUMMARY ============ -->
+
+  <!-- HEDEF KİTLE -->
+  <g transform="translate(20 174)" filter="url(#cardShadow)">
+    <rect width="220" height="44" rx="8" fill="#ffffff" stroke="#eef0fb" stroke-width="0.4"/>
+    <circle cx="18" cy="18" r="9" fill="url(#brandGrad)"/>
+    <circle cx="15" cy="16" r="2.2" fill="#ffffff"/>
+    <circle cx="21" cy="16" r="2.2" fill="#ffffff"/>
+    <path d="M 10 22 Q 15 19, 19 22 Q 23 19, 26 22 L 26 24 L 10 24 Z" fill="#ffffff"/>
+    <text x="32" y="14" font-family="Helvetica, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#0f172a">Hedef Kitle</text>
+    <text x="32" y="20" font-family="Helvetica, Arial, sans-serif" font-size="4.5" font-weight="500" fill="#667eea" letter-spacing="0.6">DOĞRULANMIŞ ÜNİVERSİTE ÖĞRENCİLERİ</text>
+    <text x="10" y="35" font-family="Helvetica, Arial, sans-serif" font-size="5.2" fill="#374151">18-25 yaş, kurumsal .edu adresi olan Z kuşağı.</text>
+    <text x="10" y="41" font-family="Helvetica, Arial, sans-serif" font-size="5.2" fill="#374151">Fakülte, kulüp, kampüs etkinliklerinde aktif.</text>
+  </g>
+
+  <!-- PROBLEM -->
+  <g transform="translate(20 224)" filter="url(#cardShadow)">
+    <rect width="220" height="66" rx="8" fill="#ffffff" stroke="#eef0fb" stroke-width="0.4"/>
+    <circle cx="18" cy="18" r="9" fill="#f59e0b"/>
+    <path d="M 18 12 L 23 22 L 13 22 Z" fill="#ffffff"/>
+    <rect x="17.3" y="15" width="1.4" height="4" fill="#f59e0b"/>
+    <circle cx="18" cy="20.5" r="0.7" fill="#f59e0b"/>
+    <text x="32" y="14" font-family="Helvetica, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#0f172a">Problem</text>
+    <text x="32" y="20" font-family="Helvetica, Arial, sans-serif" font-size="4.5" font-weight="500" fill="#f59e0b" letter-spacing="0.6">DAĞINIK VE GÜVENSİZ ÖĞRENCİ İLETİŞİMİ</text>
+    <g transform="translate(10 28)" font-family="Helvetica, Arial, sans-serif" font-size="5" fill="#374151">
+      <circle cx="2" cy="3" r="1.4" fill="#f59e0b"/><text x="6" y="4.4" font-weight="700">Kimlik doğrulama yok</text><text x="6" y="9.5" fill="#6b7280" font-size="4.4">sahte hesaplar, taciz, dolandırıcılık riski</text>
+      <circle cx="2" cy="16.5" r="1.4" fill="#f59e0b"/><text x="6" y="17.9" font-weight="700">Akademik gürültü</text><text x="6" y="22.5" fill="#6b7280" font-size="4.4">genel algoritmalar bölüm bilgisini bastırıyor</text>
+      <circle cx="2" cy="29.5" r="1.4" fill="#f59e0b"/><text x="6" y="30.9" font-weight="700">5+ ayrı platform</text><text x="6" y="35.5" fill="#6b7280" font-size="4.4">IG · WhatsApp · OBS · anket · ikinci el</text>
+    </g>
+  </g>
+
+  <!-- ÇÖZÜM -->
+  <g transform="translate(20 296)" filter="url(#cardShadow)">
+    <rect width="220" height="74" rx="8" fill="#ffffff" stroke="#eef0fb" stroke-width="0.4"/>
+    <circle cx="18" cy="18" r="9" fill="url(#brandGrad)"/>
+    <path d="M 18 11 C 14.5 11, 12 13.5, 12 17 C 12 19, 13 20.5, 14.5 21.5 L 14.5 23 L 21.5 23 L 21.5 21.5 C 23 20.5, 24 19, 24 17 C 24 13.5, 21.5 11, 18 11 Z" fill="#ffffff"/>
+    <rect x="15" y="23.5" width="6" height="1.4" rx="0.5" fill="#ffffff"/>
+    <text x="32" y="14" font-family="Helvetica, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#0f172a">Çözüm — Tek Platform, 5 Sorun</text>
+    <text x="32" y="20" font-family="Helvetica, Arial, sans-serif" font-size="4.5" font-weight="500" fill="#667eea" letter-spacing="0.6">.EDU DOĞRULAMA + 4 ÖZELLİK KATMANI</text>
+    <g transform="translate(10 28)" font-family="Helvetica, Arial, sans-serif" font-size="4.8">
+      <g><rect width="98" height="11" rx="2" fill="#f4f1ff"/><circle cx="6" cy="5.5" r="2.6" fill="#7c3aed"/><text x="6" y="6.8" text-anchor="middle" font-size="3.4" font-weight="800" fill="#ffffff">1</text><text x="11" y="7.5" font-weight="700" fill="#7c3aed">.edu Doğrulama</text></g>
+      <g transform="translate(102 0)"><rect width="98" height="11" rx="2" fill="#f4f1ff"/><circle cx="6" cy="5.5" r="2.6" fill="#7c3aed"/><text x="6" y="6.8" text-anchor="middle" font-size="3.4" font-weight="800" fill="#ffffff">2</text><text x="11" y="7.5" font-weight="700" fill="#7c3aed">Fakülte Feed</text></g>
+      <g transform="translate(0 14)"><rect width="98" height="11" rx="2" fill="#f4f1ff"/><circle cx="6" cy="5.5" r="2.6" fill="#7c3aed"/><text x="6" y="6.8" text-anchor="middle" font-size="3.4" font-weight="800" fill="#ffffff">3</text><text x="11" y="7.5" font-weight="700" fill="#7c3aed">Güvenilir Anket</text></g>
+      <g transform="translate(102 14)"><rect width="98" height="11" rx="2" fill="#f4f1ff"/><circle cx="6" cy="5.5" r="2.6" fill="#7c3aed"/><text x="6" y="6.8" text-anchor="middle" font-size="3.4" font-weight="800" fill="#ffffff">4</text><text x="11" y="7.5" font-weight="700" fill="#7c3aed">Kampüs Market</text></g>
+      <g transform="translate(0 28)"><rect width="200" height="11" rx="2" fill="#fef3c7"/><circle cx="6" cy="5.5" r="2.6" fill="#f59e0b"/><text x="6" y="6.8" text-anchor="middle" font-size="3.4" font-weight="800" fill="#ffffff">5</text><text x="11" y="7.5" font-weight="700" fill="#92400e">Gerçek Zamanlı DM  ·  birebir, güvenli, anlık</text></g>
+    </g>
+  </g>
+
+  <!-- PROJE ÖZETİ -->
+  <g transform="translate(20 376)" filter="url(#cardShadow)">
+    <rect width="220" height="60" rx="8" fill="#ffffff" stroke="#eef0fb" stroke-width="0.4"/>
+    <circle cx="18" cy="18" r="9" fill="url(#brandGrad)"/>
+    <path d="M 13 11 L 21 11 L 24 14 L 24 25 L 13 25 Z" fill="#ffffff"/>
+    <path d="M 21 11 L 21 14 L 24 14 Z" fill="#cbd5ff"/>
+    <rect x="15" y="17" width="7" height="0.9" fill="url(#brandGrad)"/>
+    <rect x="15" y="19.5" width="7" height="0.9" fill="url(#brandGrad)"/>
+    <rect x="15" y="22" width="5" height="0.9" fill="url(#brandGrad)"/>
+    <text x="32" y="14" font-family="Helvetica, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#0f172a">Proje Özeti</text>
+    <text x="32" y="20" font-family="Helvetica, Arial, sans-serif" font-size="4.5" font-weight="500" fill="#667eea" letter-spacing="0.6">KONUŞAN FİKİR DEĞİL — ÇALIŞAN ÜRÜN</text>
+    <text x="10" y="35" font-family="Helvetica, Arial, sans-serif" font-size="5.2" fill="#374151">Hops; .edu doğrulamalı, fakülte odaklı bir sosyal</text>
+    <text x="10" y="41" font-family="Helvetica, Arial, sans-serif" font-size="5.2" fill="#374151">platform. 100 kişilik kapalı beta tamamlandı, iOS</text>
+    <text x="10" y="47" font-family="Helvetica, Arial, sans-serif" font-size="5.2" fill="#374151">&amp; Android'de canlı; backend Firebase üzerinde.</text>
+    <text x="10" y="55" font-family="Helvetica, Arial, sans-serif" font-size="4.6" font-style="italic" fill="#6b7280">Expo · React Native · Firebase (Firestore + Storage + Auth)</text>
+  </g>
+
+  <!-- COMPETITIVE MATRIX MINI -->
+  <g transform="translate(20 442)" filter="url(#cardShadow)">
+    <rect width="220" height="76" rx="8" fill="#ffffff" stroke="#eef0fb" stroke-width="0.4"/>
+    <rect width="220" height="14" rx="7" fill="url(#brandGradDark)"/>
+    <text x="10" y="9" font-family="Helvetica, Arial, sans-serif" font-size="6.5" font-weight="700" fill="#ffffff" letter-spacing="0.4">REKABET — NEDEN HOPS?</text>
+    <g font-family="Helvetica, Arial, sans-serif" font-size="4.2" fill="#374151">
+      <!-- column headers -->
+      <text x="10" y="21" font-weight="700" fill="#6b7280" font-size="3.6">ÖZELLİK</text>
+      <text x="98" y="21" text-anchor="middle" font-weight="700" fill="#6b7280" font-size="3.6">IG/X</text>
+      <text x="124" y="21" text-anchor="middle" font-weight="700" fill="#6b7280" font-size="3.6">WhatsApp</text>
+      <text x="158" y="21" text-anchor="middle" font-weight="700" fill="#6b7280" font-size="3.6">OBS*</text>
+      <text x="190" y="21" text-anchor="middle" font-weight="700" fill="url(#brandGradH)" font-size="3.6">HOPS</text>
+      <!-- rows -->
+      <g transform="translate(0 26)">
+        <text x="10" y="3">.edu Kimlik</text><text x="98" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="124" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="158" y="3" text-anchor="middle" fill="#f59e0b">kısıt</text><text x="190" y="3" text-anchor="middle" fill="#16a34a" font-weight="700">✓</text>
+      </g>
+      <g transform="translate(0 33)"><line x1="6" x2="214" y1="0" y2="0" stroke="#eef0fb"/></g>
+      <g transform="translate(0 36)">
+        <text x="10" y="3">Fakülte Feed</text><text x="98" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="124" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="158" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="190" y="3" text-anchor="middle" fill="#16a34a" font-weight="700">✓</text>
+      </g>
+      <g transform="translate(0 43)"><line x1="6" x2="214" y1="0" y2="0" stroke="#eef0fb"/></g>
+      <g transform="translate(0 46)">
+        <text x="10" y="3">Güvenilir Anket</text><text x="98" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="124" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="158" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="190" y="3" text-anchor="middle" fill="#16a34a" font-weight="700">✓</text>
+      </g>
+      <g transform="translate(0 53)"><line x1="6" x2="214" y1="0" y2="0" stroke="#eef0fb"/></g>
+      <g transform="translate(0 56)">
+        <text x="10" y="3">Kampüs Market</text><text x="98" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="124" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="158" y="3" text-anchor="middle" fill="#ef4444">✕</text><text x="190" y="3" text-anchor="middle" fill="#16a34a" font-weight="700">✓</text>
+      </g>
+      <text x="10" y="71" font-size="3.2" fill="#9ca3af" font-style="italic">* OBS = Öğrenci Bilgi Sistemi — doğrulama var ama idari, sosyal değil.</text>
+    </g>
+  </g>
+
+  <!-- ============ RIGHT COLUMN — PROTOTYPE WITH REAL SCREENSHOTS ============ -->
+  <g transform="translate(252 174)">
+    <!-- Section header bar -->
+    <rect width="228" height="14" rx="7" fill="url(#brandGrad)"/>
+    <circle cx="10" cy="7" r="3.5" fill="#ffffff"/>
+    <rect x="8" y="5" width="4" height="4" rx="0.8" fill="url(#brandGradH)"/>
+    <text x="18" y="9" font-family="Helvetica, Arial, sans-serif" font-size="6.5" font-weight="700" fill="#ffffff" letter-spacing="0.4">ÜRÜN — GERÇEK EKRAN GÖRÜNTÜLERİ</text>
+
+    <!-- Frame -->
+    <g transform="translate(0 22)">
+      <rect width="228" height="322" rx="10" fill="#f5f7ff" stroke="#e8ecff" stroke-width="0.5"/>
+      <circle cx="40" cy="40" r="40" fill="url(#brandGrad)" opacity="0.10"/>
+      <circle cx="200" cy="290" r="38" fill="#fde047" opacity="0.18"/>
+
+      <!-- PHONE 1 — Faculty Feed -->
+      <g transform="translate(14 18)" filter="url(#phoneShadow)">
+        <rect width="62" height="124" rx="9" fill="#1f2937"/>
+        <rect x="2" y="3" width="58" height="118" rx="6" fill="#ffffff"/>
+        <rect x="26" y="3.5" width="10" height="2" rx="1" fill="#1f2937"/>
+        <g transform="translate(8 9)" clip-path="url(#phone1Clip)">
+          <image href="assets/screenshots/02-faculty-feed.jpg" x="-3" y="0" width="52" height="106" preserveAspectRatio="xMidYMin slice"/>
+        </g>
+        <!-- caption -->
+        <rect x="0" y="128" width="62" height="10" rx="2" fill="url(#brandGrad)"/>
+        <text x="31" y="135" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="4.5" font-weight="700" fill="#ffffff">Fakülte Feed</text>
+      </g>
+
+      <!-- PHONE 2 — Marketplace -->
+      <g transform="translate(83 32)" filter="url(#phoneShadow)">
+        <rect width="62" height="124" rx="9" fill="#1f2937"/>
+        <rect x="2" y="3" width="58" height="118" rx="6" fill="#ffffff"/>
+        <rect x="26" y="3.5" width="10" height="2" rx="1" fill="#1f2937"/>
+        <g transform="translate(8 9)" clip-path="url(#phone2Clip)">
+          <image href="assets/screenshots/03-marketplace.jpg" x="-3" y="0" width="52" height="106" preserveAspectRatio="xMidYMin slice"/>
+        </g>
+        <rect x="0" y="128" width="62" height="10" rx="2" fill="url(#brandGrad)"/>
+        <text x="31" y="135" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="4.5" font-weight="700" fill="#ffffff">Kampüs Market</text>
+      </g>
+
+      <!-- PHONE 3 — Profile -->
+      <g transform="translate(152 18)" filter="url(#phoneShadow)">
+        <rect width="62" height="124" rx="9" fill="#1f2937"/>
+        <rect x="2" y="3" width="58" height="118" rx="6" fill="#ffffff"/>
+        <rect x="26" y="3.5" width="10" height="2" rx="1" fill="#1f2937"/>
+        <g transform="translate(8 9)" clip-path="url(#phone3Clip)">
+          <image href="assets/screenshots/05-profile.jpg" x="-3" y="0" width="52" height="106" preserveAspectRatio="xMidYMin slice"/>
+        </g>
+        <rect x="0" y="128" width="62" height="10" rx="2" fill="url(#brandGrad)"/>
+        <text x="31" y="135" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="4.5" font-weight="700" fill="#ffffff">Profil &amp; İçerik</text>
+      </g>
+
+      <!-- Login + Chat row below -->
+      <g transform="translate(14 168)" filter="url(#phoneShadow)">
+        <rect width="62" height="118" rx="9" fill="#1f2937"/>
+        <rect x="2" y="3" width="58" height="112" rx="6" fill="#ffffff"/>
+        <rect x="26" y="3.5" width="10" height="2" rx="1" fill="#1f2937"/>
+        <g transform="translate(8 9)" clip-path="url(#phone1Clip)">
+          <image href="assets/screenshots/01-login.jpg" x="-3" y="0" width="52" height="100" preserveAspectRatio="xMidYMin slice"/>
+        </g>
+      </g>
+
+      <g transform="translate(83 168)" filter="url(#phoneShadow)">
+        <rect width="62" height="118" rx="9" fill="#1f2937"/>
+        <rect x="2" y="3" width="58" height="112" rx="6" fill="#ffffff"/>
+        <rect x="26" y="3.5" width="10" height="2" rx="1" fill="#1f2937"/>
+        <g transform="translate(8 9)" clip-path="url(#phone2Clip)">
+          <image href="assets/screenshots/04-chat.jpg" x="-3" y="0" width="52" height="100" preserveAspectRatio="xMidYMin slice"/>
+        </g>
+      </g>
+
+      <!-- LIVE BACKEND badge -->
+      <g transform="translate(152 168)">
+        <rect width="62" height="118" rx="9" fill="url(#brandGradDark)"/>
+        <rect width="62" height="118" rx="9" fill="url(#topGlow)"/>
+        <circle cx="31" cy="24" r="9" fill="#fde047"/>
+        <text x="31" y="27" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="8" font-weight="800" fill="#0f172a">●</text>
+        <text x="31" y="42" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="5.5" font-weight="800" fill="#fde047">CANLI</text>
+        <text x="31" y="49" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="5.5" font-weight="800" fill="#fde047">BACKEND</text>
+        <line x1="10" x2="52" y1="55" y2="55" stroke="#ffffff" stroke-opacity="0.2"/>
+        <text x="31" y="64" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="3.8" font-weight="700" fill="#ffffff">Firebase</text>
+        <text x="31" y="70" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="3.2" fill="#cbd5ff">Firestore + Storage</text>
+        <text x="31" y="75" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="3.2" fill="#cbd5ff">+ Auth + Rules</text>
+        <line x1="10" x2="52" y1="82" y2="82" stroke="#ffffff" stroke-opacity="0.2"/>
+        <text x="31" y="91" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="3.6" font-weight="700" fill="#fde047">React Native</text>
+        <text x="31" y="96" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="3.2" fill="#cbd5ff">+ Expo · TypeScript</text>
+        <text x="31" y="105" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="3" fill="#ffffff" font-style="italic">"mockup değil"</text>
+        <text x="31" y="111" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="2.8" fill="#cbd5ff" font-style="italic">veriler gerçek zamanlı</text>
+      </g>
+
+      <!-- Caption strip -->
+      <g transform="translate(10 296)">
+        <rect width="208" height="18" rx="4" fill="#ffffff" stroke="#eef0fb" stroke-width="0.4"/>
+        <circle cx="9" cy="9" r="3" fill="url(#accentGrad)"/>
+        <text x="9" y="10.6" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="3.6" font-weight="800" fill="#0f172a">★</text>
+        <text x="16" y="8" font-family="Helvetica, Arial, sans-serif" font-size="4.4" font-weight="700" fill="#0f172a">5 özellik · tek uygulama · canlı Firebase backend</text>
+        <text x="16" y="13.5" font-family="Helvetica, Arial, sans-serif" font-size="3.6" fill="#6b7280">.edu doğrulama → Fakülte Feed → Anket → Market → Anlık DM</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============ PAZAR FIRSATI (small block) ============ -->
+  <g transform="translate(252 522)" filter="url(#cardShadow)">
+    <rect width="228" height="74" rx="8" fill="#ffffff" stroke="#eef0fb" stroke-width="0.4"/>
+    <rect width="228" height="14" rx="7" fill="url(#brandGradDark)"/>
+    <text x="10" y="9" font-family="Helvetica, Arial, sans-serif" font-size="6.5" font-weight="700" fill="#ffffff" letter-spacing="0.4">PAZAR FIRSATI — TAM / SAM / SOM</text>
+    <g font-family="Helvetica, Arial, sans-serif">
+      <!-- TAM -->
+      <g transform="translate(10 22)">
+        <rect width="68" height="44" rx="5" fill="#f4f1ff"/>
+        <text x="34" y="11" text-anchor="middle" font-size="4" font-weight="700" fill="#7c3aed" letter-spacing="0.6">TAM</text>
+        <text x="34" y="24" text-anchor="middle" font-size="11" font-weight="800" fill="url(#brandGradH)">300M</text>
+        <text x="34" y="32" text-anchor="middle" font-size="3.4" fill="#6b7280">dünyadaki üni</text>
+        <text x="34" y="36" text-anchor="middle" font-size="3.4" fill="#6b7280">öğrencileri</text>
+      </g>
+      <!-- SAM -->
+      <g transform="translate(82 22)">
+        <rect width="68" height="44" rx="5" fill="#ede9fe"/>
+        <text x="34" y="11" text-anchor="middle" font-size="4" font-weight="700" fill="#7c3aed" letter-spacing="0.6">SAM</text>
+        <text x="34" y="24" text-anchor="middle" font-size="11" font-weight="800" fill="url(#brandGradH)">~150K</text>
+        <text x="34" y="32" text-anchor="middle" font-size="3.4" fill="#6b7280">İzmir 5 üni</text>
+        <text x="34" y="36" text-anchor="middle" font-size="3.4" fill="#6b7280">DEÜ · EÜ · İYTE…</text>
+      </g>
+      <!-- SOM -->
+      <g transform="translate(154 22)">
+        <rect width="64" height="44" rx="5" fill="url(#brandGradDark)"/>
+        <text x="32" y="11" text-anchor="middle" font-size="4" font-weight="700" fill="#fde047" letter-spacing="0.6">SOM · Yıl 1</text>
+        <text x="32" y="24" text-anchor="middle" font-size="11" font-weight="800" fill="#ffffff">3.500</text>
+        <text x="32" y="32" text-anchor="middle" font-size="3.4" fill="#cbd5ff">DEÜ %5</text>
+        <text x="32" y="36" text-anchor="middle" font-size="3.4" fill="#cbd5ff">penetrasyon</text>
+      </g>
+      <text x="114" y="71" text-anchor="middle" font-size="3.6" fill="#9ca3af" font-style="italic">Aşağıdan yukarı, kanıtlanabilir büyüme · %15/ay ilk 6 ay hedef</text>
+    </g>
+  </g>
+
+  <!-- ============ ROADMAP ============ -->
+  <g transform="translate(20 528)">
+    <rect width="220" height="14" rx="7" fill="url(#brandGradDark)"/>
+    <text x="10" y="9" font-family="Helvetica, Arial, sans-serif" font-size="6.5" font-weight="700" fill="#ffffff" letter-spacing="0.4">YOL HARİTASI — YÜRÜTME PLANI</text>
+  </g>
+
+  <g transform="translate(20 548)" font-family="Helvetica, Arial, sans-serif">
+    <!-- Stage 1 (done) -->
+    <g>
+      <rect width="50" height="48" rx="5" fill="#dcfce7"/>
+      <text x="25" y="11" text-anchor="middle" font-size="3.6" font-weight="700" fill="#16a34a">✓ TAMAMLANDI</text>
+      <text x="25" y="22" text-anchor="middle" font-size="5.6" font-weight="800" fill="#0f172a">Q2 2026</text>
+      <text x="25" y="30" text-anchor="middle" font-size="4.4" font-weight="700" fill="#16a34a">Kapalı Beta</text>
+      <text x="25" y="36" text-anchor="middle" font-size="3.4" fill="#6b7280">100 kullanıcı</text>
+      <text x="25" y="41" text-anchor="middle" font-size="3.4" fill="#6b7280">gerçek kullanım verisi</text>
+      <text x="25" y="46" text-anchor="middle" font-size="3.4" fill="#6b7280">geri bildirim toplandı</text>
+    </g>
+    <!-- arrow -->
+    <text x="55" y="28" font-size="6" fill="#cbd5ff">▶</text>
+    <!-- Stage 2 -->
+    <g transform="translate(58 0)">
+      <rect width="50" height="48" rx="5" fill="#f4f1ff"/>
+      <text x="25" y="11" text-anchor="middle" font-size="3.6" font-weight="700" fill="#7c3aed">DEVAM</text>
+      <text x="25" y="22" text-anchor="middle" font-size="5.6" font-weight="800" fill="#0f172a">Q3 2026</text>
+      <text x="25" y="30" text-anchor="middle" font-size="4.4" font-weight="700" fill="#7c3aed">Geniş Beta</text>
+      <text x="25" y="36" text-anchor="middle" font-size="3.4" fill="#6b7280">500+ kullanıcı</text>
+      <text x="25" y="41" text-anchor="middle" font-size="3.4" fill="#6b7280">UI/UX iterasyon</text>
+      <text x="25" y="46" text-anchor="middle" font-size="3.4" fill="#6b7280">store hazırlık</text>
+    </g>
+    <text x="113" y="28" font-size="6" fill="#cbd5ff">▶</text>
+    <!-- Stage 3 -->
+    <g transform="translate(116 0)">
+      <rect width="50" height="48" rx="5" fill="#f4f1ff"/>
+      <text x="25" y="11" text-anchor="middle" font-size="3.6" font-weight="700" fill="#7c3aed">PLANLI</text>
+      <text x="25" y="22" text-anchor="middle" font-size="5.6" font-weight="800" fill="#0f172a">Q4 2026</text>
+      <text x="25" y="30" text-anchor="middle" font-size="4.4" font-weight="700" fill="#7c3aed">DEÜ Lansman</text>
+      <text x="25" y="36" text-anchor="middle" font-size="3.4" fill="#6b7280">kampüs geneli</text>
+      <text x="25" y="41" text-anchor="middle" font-size="3.4" fill="#6b7280">kulüp iş birlikleri</text>
+      <text x="25" y="46" text-anchor="middle" font-size="3.4" fill="#6b7280">hedef: 3.500</text>
+    </g>
+    <text x="171" y="28" font-size="6" fill="#cbd5ff">▶</text>
+    <!-- Stage 4 -->
+    <g transform="translate(174 0)">
+      <rect width="46" height="48" rx="5" fill="url(#brandGradDark)"/>
+      <text x="23" y="11" text-anchor="middle" font-size="3.6" font-weight="700" fill="#fde047">ÖLÇEK</text>
+      <text x="23" y="22" text-anchor="middle" font-size="5.6" font-weight="800" fill="#ffffff">2027+</text>
+      <text x="23" y="30" text-anchor="middle" font-size="4.4" font-weight="700" fill="#fde047">Türkiye → Dünya</text>
+      <text x="23" y="36" text-anchor="middle" font-size="3.4" fill="#cbd5ff">topluluk feed</text>
+      <text x="23" y="41" text-anchor="middle" font-size="3.4" fill="#cbd5ff">kurumsal lisans</text>
+      <text x="23" y="46" text-anchor="middle" font-size="3.4" fill="#cbd5ff">gelir modeli</text>
+    </g>
+  </g>
+
+  <!-- ============ HIGHLIGHT BANNER ============ -->
+  <g transform="translate(20 604)">
+    <rect width="460" height="22" rx="11" fill="url(#brandGradH)"/>
+    <text x="230" y="13.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="7" font-weight="700" fill="#ffffff" letter-spacing="0.5">
+      "Güvenli kampüs kimliğiyle üniversite öğrencilerini bir araya getiriyoruz."
+    </text>
+    <text x="230" y="19" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="4" font-weight="500" fill="#fde047" letter-spacing="0.4">
+      DOKUZ EYLÜL'DE BAŞLIYORUZ — DÜNYADAKİ HER KAMPÜS İÇİN DOĞRULANMIŞ SOSYAL AĞ
+    </text>
+  </g>
+
+  <!-- ============ FOOTER — INVESTMENT / QR / CONTACT ============ -->
+  <!-- INVESTMENT ASK -->
+  <g transform="translate(20 632)" filter="url(#cardShadow)">
+    <rect width="280" height="56" rx="8" fill="url(#brandGradDark)"/>
+    <rect width="280" height="14" rx="7" fill="url(#brandGradH)"/>
+    <text x="10" y="9" font-family="Helvetica, Arial, sans-serif" font-size="6.5" font-weight="700" fill="#ffffff" letter-spacing="0.4">YATIRIM TALEBİ</text>
+    <text x="270" y="9" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="5" font-weight="600" fill="#fde047">BİGG + BAMBU desteği</text>
+
+    <text x="12" y="32" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="800" fill="#ffffff">2.200.000 ₺</text>
+    <text x="12" y="40" font-family="Helvetica, Arial, sans-serif" font-size="4.4" fill="#cbd5ff">12 aylık yürütme · Q3 2026 - Q3 2027</text>
+
+    <!-- Budget breakdown -->
+    <g transform="translate(140 20)" font-family="Helvetica, Arial, sans-serif" font-size="3.8" fill="#ffffff">
+      <g><rect width="14" height="5" rx="1" fill="#fde047"/><text x="18" y="4" font-weight="700">%35 Pazarlama &amp; kullanıcı edinimi</text></g>
+      <g transform="translate(0 7)"><rect width="14" height="5" rx="1" fill="#a78bfa"/><text x="18" y="4" font-weight="700">%30 Ürün geliştirme &amp; altyapı</text></g>
+      <g transform="translate(0 14)"><rect width="14" height="5" rx="1" fill="#67e8f9"/><text x="18" y="4" font-weight="700">%20 Operasyon &amp; hukuki</text></g>
+      <g transform="translate(0 21)"><rect width="14" height="5" rx="1" fill="#f472b6"/><text x="18" y="4" font-weight="700">%15 Mentörlük &amp; eğitim</text></g>
+    </g>
+  </g>
+
+  <!-- QR CODE -->
+  <g transform="translate(312 632)" filter="url(#cardShadow)">
+    <rect width="48" height="56" rx="8" fill="#ffffff" stroke="#eef0fb" stroke-width="0.4"/>
+    <g transform="translate(6 6)" fill="#0f172a">
+      <rect x="0" y="0" width="10" height="10"/><rect x="1.5" y="1.5" width="7" height="7" fill="#ffffff"/><rect x="3" y="3" width="4" height="4" fill="#0f172a"/>
+      <rect x="26" y="0" width="10" height="10"/><rect x="27.5" y="1.5" width="7" height="7" fill="#ffffff"/><rect x="29" y="3" width="4" height="4" fill="#0f172a"/>
+      <rect x="0" y="26" width="10" height="10"/><rect x="1.5" y="27.5" width="7" height="7" fill="#ffffff"/><rect x="3" y="29" width="4" height="4" fill="#0f172a"/>
+      <rect x="14" y="2" width="1.5" height="1.5"/><rect x="17" y="2" width="1.5" height="1.5"/><rect x="20" y="4" width="1.5" height="1.5"/><rect x="14" y="5" width="1.5" height="1.5"/><rect x="22" y="7" width="1.5" height="1.5"/>
+      <rect x="14" y="9" width="1.5" height="1.5"/><rect x="17" y="11" width="1.5" height="1.5"/><rect x="20" y="9" width="1.5" height="1.5"/><rect x="23" y="11" width="1.5" height="1.5"/>
+      <rect x="2" y="14" width="1.5" height="1.5"/><rect x="5" y="14" width="1.5" height="1.5"/><rect x="8" y="17" width="1.5" height="1.5"/><rect x="2" y="20" width="1.5" height="1.5"/><rect x="5" y="22" width="1.5" height="1.5"/>
+      <rect x="14" y="14" width="1.5" height="1.5"/><rect x="17" y="16" width="1.5" height="1.5"/><rect x="20" y="14" width="1.5" height="1.5"/><rect x="23" y="16" width="1.5" height="1.5"/><rect x="26" y="14" width="1.5" height="1.5"/><rect x="29" y="17" width="1.5" height="1.5"/>
+      <rect x="14" y="20" width="1.5" height="1.5"/><rect x="17" y="22" width="1.5" height="1.5"/><rect x="20" y="20" width="1.5" height="1.5"/><rect x="23" y="22" width="1.5" height="1.5"/><rect x="26" y="20" width="1.5" height="1.5"/><rect x="29" y="22" width="1.5" height="1.5"/>
+      <rect x="14" y="26" width="1.5" height="1.5"/><rect x="17" y="28" width="1.5" height="1.5"/><rect x="20" y="26" width="1.5" height="1.5"/><rect x="23" y="28" width="1.5" height="1.5"/><rect x="26" y="26" width="1.5" height="1.5"/><rect x="29" y="28" width="1.5" height="1.5"/>
+      <rect x="14" y="32" width="1.5" height="1.5"/><rect x="17" y="34" width="1.5" height="1.5"/><rect x="20" y="32" width="1.5" height="1.5"/><rect x="23" y="34" width="1.5" height="1.5"/><rect x="26" y="32" width="1.5" height="1.5"/><rect x="29" y="34" width="1.5" height="1.5"/>
+    </g>
+    <text x="24" y="50" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="3.2" font-weight="700" fill="#0f172a">DEMO &amp; PITCH</text>
+    <text x="24" y="54" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="2.8" fill="#6b7280">QR → hops.app</text>
+  </g>
+
+  <!-- CONTACT -->
+  <g transform="translate(372 632)" filter="url(#cardShadow)">
+    <rect width="108" height="56" rx="8" fill="#ffffff" stroke="#eef0fb" stroke-width="0.4"/>
+    <rect width="108" height="14" rx="7" fill="url(#brandGradH)"/>
+    <text x="6" y="9" font-family="Helvetica, Arial, sans-serif" font-size="6.5" font-weight="700" fill="#ffffff" letter-spacing="0.4">İLETİŞİM</text>
+
+    <g transform="translate(6 19)" font-family="Helvetica, Arial, sans-serif">
+      <g><circle cx="3" cy="3" r="2.5" fill="url(#brandGrad)"/><text x="3" y="4.2" text-anchor="middle" font-size="3" font-weight="700" fill="#ffffff">@</text>
+         <text x="9" y="2.4" font-size="3.4" font-weight="700" fill="#6b7280">E-POSTA</text>
+         <text x="9" y="6" font-size="3.8" font-weight="600" fill="#0f172a">enes.gunel@hops.app</text></g>
+      <g transform="translate(0 9)"><circle cx="3" cy="3" r="2.5" fill="url(#brandGrad)"/><text x="3" y="4.2" text-anchor="middle" font-size="3" font-weight="700" fill="#ffffff">W</text>
+         <text x="9" y="2.4" font-size="3.4" font-weight="700" fill="#6b7280">WEB</text>
+         <text x="9" y="6" font-size="3.8" font-weight="600" fill="#0f172a">www.hops.app</text></g>
+      <g transform="translate(0 18)"><circle cx="3" cy="3" r="2.5" fill="url(#accentGrad)"/><text x="3" y="4.2" text-anchor="middle" font-size="3" font-weight="700" fill="#0f172a">★</text>
+         <text x="9" y="2.4" font-size="3.4" font-weight="700" fill="#6b7280">SOSYAL</text>
+         <text x="9" y="6" font-size="3.8" font-weight="600" fill="#0f172a">@hops.app</text></g>
+      <g transform="translate(0 27)"><circle cx="3" cy="3" r="2.5" fill="url(#brandGrad)"/><circle cx="3" cy="2.6" r="1.1" fill="#ffffff"/><path d="M 2 3 L 3 4.5 L 4 3 Z" fill="#ffffff"/>
+         <text x="9" y="2.4" font-size="3.4" font-weight="700" fill="#6b7280">OFİS</text>
+         <text x="9" y="6" font-size="3.8" font-weight="600" fill="#0f172a">DEÜ Teknopark · İzmir</text></g>
+    </g>
+  </g>
+
+  <!-- Watermark -->
+  <text x="250" y="697" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="2.6" fill="#9ca3af" letter-spacing="0.6">
+    HOPS © 2026  •  YATIRIMCI POSTERİ  •  HER KAMPÜS İÇİN DOĞRULANMIŞ SOSYAL AĞ
+  </text>
+</svg>

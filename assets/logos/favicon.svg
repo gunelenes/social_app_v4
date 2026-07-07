@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="fbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+    <linearGradient id="facc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#fbg)"/>
+  <path d="M 16 44 Q 32 12, 48 44"
+        stroke="#ffffff" stroke-width="5"
+        fill="none" stroke-linecap="round"/>
+  <circle cx="16" cy="44" r="4.5" fill="#ffffff"/>
+  <circle cx="48" cy="44" r="7" fill="url(#facc)"/>
+</svg>
